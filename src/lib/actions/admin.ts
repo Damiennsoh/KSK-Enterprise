@@ -161,6 +161,57 @@ export async function updateInquiryStatus(id: string, status: string) {
   revalidatePath("/admin")
 }
 
+// ─── HERO CAROUSEL CRUD ────────────────────────────────────
+export async function createHeroSlide(formData: FormData) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("hero_slides").insert({
+    eyebrow: String(formData.get("eyebrow") || ""),
+    title: String(formData.get("title") || ""),
+    description: String(formData.get("description") || ""),
+    cta_label: String(formData.get("cta_label") || "Explore"),
+    cta_href: String(formData.get("cta_href") || "/"),
+    image_url: String(formData.get("image_url") || ""),
+    display_order: Number(formData.get("display_order") || 0),
+    is_active: formData.get("is_active") !== "false",
+  })
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
+export async function updateHeroSlide(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("hero_slides").update({
+    eyebrow: String(formData.get("eyebrow") || ""),
+    title: String(formData.get("title") || ""),
+    description: String(formData.get("description") || ""),
+    cta_label: String(formData.get("cta_label") || "Explore"),
+    cta_href: String(formData.get("cta_href") || "/"),
+    image_url: String(formData.get("image_url") || ""),
+    display_order: Number(formData.get("display_order") || 0),
+    is_active: formData.get("is_active") !== "false",
+  }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
+export async function deleteHeroSlide(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("hero_slides").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
+export async function toggleHeroSlide(id: string, isActive: boolean) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("hero_slides").update({ is_active: isActive }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
 // ─── IMAGE UPLOAD ───────────────────────────────────────────
 export async function uploadImage(formData: FormData) {
   const supabase = await createClient()

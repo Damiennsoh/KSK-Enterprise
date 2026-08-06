@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { LogIn, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import { signIn } from "@/lib/actions/auth"
 
-export default function LoginPage() {
+function LoginPageContent() {
   const searchParams = useSearchParams()
   const message = searchParams.get("message")
   const [showPassword, setShowPassword] = useState(false)
@@ -75,3 +75,12 @@ export default function LoginPage() {
     </div>
   )
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
+
