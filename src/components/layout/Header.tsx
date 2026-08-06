@@ -1,13 +1,40 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Menu, X, ShoppingCart, Phone, LogIn, LogOut, User } from "lucide-react"
 import { useCart } from "@/context/CartContext"
+import { createClient } from "@/lib/supabase/client"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [user, setUser] = useState<{ email: string } | null>(null)
   const { totalItems } = useCart()
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const supabase = createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      
+      if (authUser) {
+        setUser({ email: authUser.email! })
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .single()
+        setIsAdmin(profile?.role === "admin")
+      }
+    }
+    checkAdmin()
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange(() => {
+      checkAdmin()
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -61,13 +88,21 @@ export function Header() {
               )}
             </Link>
 
-            <Link href="/admin" className="hidden sm:block px-4 py-1.5 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md hover:bg-amber-400 transition-colors">
-              Admin
-            </Link>
+            {isAdmin && (
+              <Link href="/admin" className="hidden sm:block px-4 py-1.5 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md hover:bg-amber-400 transition-colors">
+                Admin
+              </Link>
+            )}
 
-            <Link href="/login" className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors">
-              <LogIn className="w-4 h-4" />Login
-            </Link>
+            {user ? (
+              <Link href="/login" className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors">
+                <LogOut className="w-4 h-4" />Logout
+              </Link>
+            ) : (
+              <Link href="/login" className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors">
+                <LogIn className="w-4 h-4" />Login
+              </Link>
+            )}
 
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-gray-300 hover:text-white" aria-label="Toggle menu">
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -84,11 +119,14 @@ export function Header() {
                 </Link>
               ))}
               <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-ksk-gold hover:bg-gray-800 rounded-md transition-colors text-sm font-medium">
-                <LogIn className="w-4 h-4" />Login
+                {user ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                {user ? "Logout" : "Login"}
               </Link>
-              <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="mt-2 px-3 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md text-center">
-                Admin Dashboard
-              </Link>
+              {isAdmin && (
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="mt-2 px-3 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md text-center">
+                  Admin Dashboard
+                </Link>
+              )}
             </div>
           </div>
         )}
