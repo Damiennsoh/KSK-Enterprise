@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { HeroCarouselManager } from "@/components/admin/HeroCarouselManager"
 import {
   LayoutDashboard, ShoppingBag, Car, HardHat, MessageSquare,
   Users, DollarSign, Package, TrendingUp, LogOut,
@@ -59,6 +60,7 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "carousel", label: "Hero Carousel", icon: HardHat },
     { id: "products", label: "Products", icon: Package },
     { id: "orders", label: "Orders", icon: ShoppingBag },
     { id: "bookings", label: "Bookings", icon: Car },
@@ -154,6 +156,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+
+            {/* HERO CAROUSEL TAB */}
+            {activeTab === "carousel" && <HeroCarouselManager />}
 
             {/* PRODUCTS TAB */}
             {activeTab === "products" && (
