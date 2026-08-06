@@ -15,21 +15,36 @@ export function Header() {
   useEffect(() => {
     const checkAdmin = async () => {
       const supabase = createClient()
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (authUser) {
-        setUser({ email: authUser.email! })
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", authUser.id)
-          .single()
-        setIsAdmin(profile?.role === "admin")
+      console.log("Auth check:", { session })
+
+      if (session) {
+        setUser({ email: session.user.email! })
+        
+        try {
+          const response = await fetch('/api/admin/check', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          })
+          const data = await response.json()
+          console.log("Admin check API response:", data)
+          setIsAdmin(data.isAdmin)
+        } catch (error) {
+          console.error("Error checking admin status:", error)
+          // Fallback: check email directly
+          setIsAdmin(session.user.email === 'admin@kskenterprise.com')
+        }
+      } else {
+        setUser(null)
+        setIsAdmin(false)
       }
     }
     checkAdmin()
 
-    const { data: { subscription } } = createClient().auth.onAuthStateChange(() => {
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, session)
       checkAdmin()
     })
 
