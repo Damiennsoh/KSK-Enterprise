@@ -4,8 +4,7 @@
 -- Supabase PostgreSQL
 -- ============================================================
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Note: Supabase uses gen_random_uuid() by default, no extension needed
 
 -- ============================================================
 -- 1. PROFILES (extends Supabase Auth users)
@@ -46,7 +45,7 @@ CREATE TRIGGER on_auth_user_created
 -- 2. PRODUCTS (Fashion / Smocks)
 -- ============================================================
 CREATE TABLE products (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
   price DECIMAL(10,2) NOT NULL,
@@ -62,7 +61,7 @@ CREATE TABLE products (
 -- 3. VEHICLES (Car Rentals)
 -- ============================================================
 CREATE TABLE vehicles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   model TEXT NOT NULL,
   brand TEXT NOT NULL,
@@ -79,7 +78,7 @@ CREATE TABLE vehicles (
 -- 4. MATERIALS (Construction)
 -- ============================================================
 CREATE TABLE materials (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
   price DECIMAL(10,2) NOT NULL,
@@ -94,7 +93,7 @@ CREATE TABLE materials (
 -- 5. ORDERS (Fashion & Materials)
 -- ============================================================
 CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   items JSONB NOT NULL DEFAULT '[]',
   total DECIMAL(10,2) NOT NULL,
   customer_name TEXT NOT NULL,
@@ -110,7 +109,7 @@ CREATE TABLE orders (
 -- 6. RENTAL BOOKINGS
 -- ============================================================
 CREATE TABLE rental_bookings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   customer_name TEXT NOT NULL,
   phone TEXT NOT NULL,
@@ -125,7 +124,7 @@ CREATE TABLE rental_bookings (
 -- 7. INQUIRIES (Construction Services)
 -- ============================================================
 CREATE TABLE inquiries (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
   email TEXT,
@@ -170,6 +169,9 @@ CREATE POLICY "Users can view own profile" ON profiles
 
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Admins can view all profiles" ON profiles
   FOR SELECT USING (

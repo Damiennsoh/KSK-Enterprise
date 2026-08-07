@@ -15,17 +15,21 @@ export function Header() {
   useEffect(() => {
     const checkAdmin = async () => {
       const supabase = createClient()
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
-      if (authUser) {
-        setUser({ email: authUser.email! })
-        const { data: admin } = await supabase.rpc("is_admin")
-        setIsAdmin(admin === true)
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session) {
+        setUser({ email: session.user.email ?? "" })
+        const { data: admin, error } = await supabase.rpc("is_admin")
+        setIsAdmin(!error && admin === true)
+      } else {
+        setUser(null)
+        setIsAdmin(false)
       }
     }
     checkAdmin()
 
-    const { data: { subscription } } = createClient().auth.onAuthStateChange(() => {
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, session)
       checkAdmin()
     })
 

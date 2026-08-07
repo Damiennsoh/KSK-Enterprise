@@ -12,14 +12,17 @@ INSERT INTO storage.buckets (id, name, public) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Set up RLS policies for storage
+DROP POLICY IF EXISTS "Public can view images" ON storage.objects;
 CREATE POLICY "Public can view images" ON storage.objects
   FOR SELECT USING (bucket_id IN ('products', 'vehicles', 'materials'));
 
+DROP POLICY IF EXISTS "Admins can upload images" ON storage.objects;
 CREATE POLICY "Admins can upload images" ON storage.objects
   FOR INSERT TO authenticated WITH CHECK (
     bucket_id IN ('products', 'vehicles', 'materials') AND public.is_admin()
   );
 
+DROP POLICY IF EXISTS "Admins can delete images" ON storage.objects;
 CREATE POLICY "Admins can delete images" ON storage.objects
   FOR DELETE TO authenticated USING (
     bucket_id IN ('products', 'vehicles', 'materials') AND public.is_admin()
