@@ -28,8 +28,7 @@ export function Header() {
     }
     checkAdmin()
 
-    const { data: { subscription } } = createClient().auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", event, session)
+    const { data: { subscription } } = createClient().auth.onAuthStateChange(() => {
       checkAdmin()
     })
 

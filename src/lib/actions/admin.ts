@@ -24,7 +24,7 @@ export async function createProduct(formData: FormData) {
     category: formData.get("category") as string,
     sizes: (formData.get("sizes") as string).split(",").map((s) => s.trim()).filter(Boolean),
     colors: (formData.get("colors") as string).split(",").map((s) => s.trim()).filter(Boolean),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     stock: parseInt(formData.get("stock") as string),
   }
   const { error } = await supabase.from("products").insert(product)
@@ -42,7 +42,7 @@ export async function updateProduct(id: string, formData: FormData) {
     category: formData.get("category") as string,
     sizes: (formData.get("sizes") as string).split(",").map((s) => s.trim()).filter(Boolean),
     colors: (formData.get("colors") as string).split(",").map((s) => s.trim()).filter(Boolean),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     stock: parseInt(formData.get("stock") as string),
   }
   const { error } = await supabase.from("products").update(product).eq("id", id)
@@ -69,7 +69,7 @@ export async function createVehicle(formData: FormData) {
     seats: parseInt(formData.get("seats") as string),
     price_per_day: parseFloat(formData.get("price_per_day") as string),
     deposit: parseFloat(formData.get("deposit") as string),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     description: formData.get("description") as string,
     is_available: formData.get("is_available") === "true",
   }
@@ -88,7 +88,7 @@ export async function updateVehicle(id: string, formData: FormData) {
     seats: parseInt(formData.get("seats") as string),
     price_per_day: parseFloat(formData.get("price_per_day") as string),
     deposit: parseFloat(formData.get("deposit") as string),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     description: formData.get("description") as string,
     is_available: formData.get("is_available") === "true",
   }
@@ -115,7 +115,7 @@ export async function createMaterial(formData: FormData) {
     price: parseFloat(formData.get("price") as string),
     unit: formData.get("unit") as string,
     stock: parseInt(formData.get("stock") as string),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     category: formData.get("category") as string,
   }
   const { error } = await supabase.from("materials").insert(material)
@@ -132,7 +132,7 @@ export async function updateMaterial(id: string, formData: FormData) {
     price: parseFloat(formData.get("price") as string),
     unit: formData.get("unit") as string,
     stock: parseInt(formData.get("stock") as string),
-    images: (formData.get("images") as string).split(",").map((s) => s.trim()).filter(Boolean),
+    images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     category: formData.get("category") as string,
   }
   const { error } = await supabase.from("materials").update(material).eq("id", id)
@@ -223,20 +223,30 @@ export async function toggleHeroSlide(id: string, isActive: boolean) {
 }
 
 // ─── IMAGE UPLOAD ───────────────────────────────────────────
+const uploadBuckets = new Set(["products", "vehicles", "materials", "hero-slides"])
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
+const maxImageSize = 10 * 1024 * 1024
+
 export async function uploadImage(formData: FormData) {
   const supabase = await getAdminClient()
-  const file = formData.get("file") as File
-  const bucket = formData.get("bucket") as string || "products"
+  const file = formData.get("file")
+  const bucket = String(formData.get("bucket") || "products")
 
-  const fileExt = file.name.split(".").pop()
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+  if (!(file instanceof File) || file.size === 0) throw new Error("Select an image to upload")
+  if (!uploadBuckets.has(bucket)) throw new Error("Invalid image bucket")
+  if (!allowedImageTypes.has(file.type)) throw new Error("Use a JPG, PNG, WebP, or GIF image")
+  if (file.size > maxImageSize) throw new Error("Images must be 10 MB or smaller")
 
-  const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
+  const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1]
+  const safeName = file.name.replace(/[^a-z0-9._-]/gi, "-").replace(/-+/g, "-").slice(-80)
+  const fileName = `${crypto.randomUUID()}-${safeName || `image.${extension}`}`
+  const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
     contentType: file.type,
+    cacheControl: "31536000",
+    upsert: false,
   })
 
   if (error) throw new Error(error.message)
-
   const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName)
   return publicUrl
 }
