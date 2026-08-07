@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { HeroCarouselManager } from "@/components/admin/HeroCarouselManager"
+import { ImagePicker } from "@/components/admin/ImagePicker"
 import {
   LayoutDashboard, ShoppingBag, Car, HardHat, MessageSquare,
   Users, DollarSign, Package, TrendingUp, LogOut,
@@ -597,8 +598,8 @@ export default function AdminDashboard() {
                     <input name="colors" defaultValue={editingItem?.colors?.join(", ") || ""} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Images (comma-separated URLs)</label>
-                    <textarea name="images" defaultValue={editingItem?.images?.join(", ") || ""} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Product images</label>
+                    <ImagePicker name="images" bucket="products" value={editingItem?.images || []} />
                   </div>
                 </>
               )}
@@ -638,8 +639,8 @@ export default function AdminDashboard() {
                     <textarea name="description" defaultValue={editingItem?.description || ""} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Images (comma-separated URLs)</label>
-                    <textarea name="images" defaultValue={editingItem?.images?.join(", ") || ""} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle images</label>
+                    <ImagePicker name="images" bucket="vehicles" value={editingItem?.images || []} />
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="checkbox" name="is_available" defaultChecked={editingItem?.is_available ?? true} className="w-4 h-4 text-ksk-gold rounded focus:ring-ksk-gold" />
@@ -677,8 +678,8 @@ export default function AdminDashboard() {
                     <input name="category" defaultValue={editingItem?.category} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Images (comma-separated URLs)</label>
-                    <textarea name="images" defaultValue={editingItem?.images?.join(", ") || ""} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Material images</label>
+                    <ImagePicker name="images" bucket="materials" value={editingItem?.images || []} />
                   </div>
                 </>
               )}
