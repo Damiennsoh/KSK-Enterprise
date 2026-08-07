@@ -15,8 +15,7 @@ import {
   createProduct, updateProduct, deleteProduct,
   createVehicle, updateVehicle, deleteVehicle,
   createMaterial, updateMaterial, deleteMaterial,
-  updateOrderStatus, updateBookingStatus, updateInquiryStatus,
-  uploadImage
+  updateOrderStatus, updateBookingStatus, updateInquiryStatus
 } from "@/lib/actions/admin"
 import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries } from "@/lib/actions/products"
 
@@ -114,22 +113,6 @@ export default function AdminDashboard() {
       await loadData()
     } catch (error) {
       alert("Error updating status: " + (error as Error).message)
-    }
-  }
-
-  const handleImageUpload = async (file: File, bucket: string): Promise<string> => {
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("bucket", bucket)
-      const url = await uploadImage(formData)
-      return url
-    } catch (error) {
-      alert("Error uploading image: " + (error as Error).message)
-      throw error
-    } finally {
-      setUploading(false)
     }
   }
 
