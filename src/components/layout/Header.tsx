@@ -16,26 +16,11 @@ export function Header() {
     const checkAdmin = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
-      console.log("Auth check:", { session })
 
       if (session) {
-        setUser({ email: session.user.email! })
-        
-        try {
-          const response = await fetch('/api/admin/check', {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`
-            }
-          })
-          const data = await response.json()
-          console.log("Admin check API response:", data)
-          setIsAdmin(data.isAdmin)
-        } catch (error) {
-          console.error("Error checking admin status:", error)
-          // Fallback: check email directly
-          setIsAdmin(session.user.email === 'admin@kskenterprise.com')
-        }
+        setUser({ email: session.user.email ?? "" })
+        const { data: admin, error } = await supabase.rpc("is_admin")
+        setIsAdmin(!error && admin === true)
       } else {
         setUser(null)
         setIsAdmin(false)

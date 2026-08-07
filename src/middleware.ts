@@ -41,9 +41,10 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url))
     }
-    // Check admin role
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
-    if (profile?.role !== "admin") {
+    // Use the SECURITY DEFINER helper so the middleware does not query the
+    // profiles table through its own admin RLS policy.
+    const { data: admin } = await supabase.rpc("is_admin")
+    if (admin !== true) {
       return NextResponse.redirect(new URL("/", request.url))
     }
   }

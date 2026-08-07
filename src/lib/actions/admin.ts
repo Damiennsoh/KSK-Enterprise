@@ -4,9 +4,19 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
+async function getAdminClient() {
+  const client = await createClient()
+  const { data: { user } } = await client.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const { data: admin, error } = await client.rpc("is_admin")
+  if (error || admin !== true) throw new Error("Forbidden")
+  return client
+}
+
 // ─── PRODUCTS CRUD ──────────────────────────────────────────
 export async function createProduct(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -24,7 +34,7 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -42,7 +52,7 @@ export async function updateProduct(id: string, formData: FormData) {
 }
 
 export async function deleteProduct(id: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("products").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
@@ -51,7 +61,7 @@ export async function deleteProduct(id: string) {
 
 // ─── VEHICLES CRUD ──────────────────────────────────────────
 export async function createVehicle(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const vehicle = {
     name: formData.get("name") as string,
     model: formData.get("model") as string,
@@ -70,7 +80,7 @@ export async function createVehicle(formData: FormData) {
 }
 
 export async function updateVehicle(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const vehicle = {
     name: formData.get("name") as string,
     model: formData.get("model") as string,
@@ -89,7 +99,7 @@ export async function updateVehicle(id: string, formData: FormData) {
 }
 
 export async function deleteVehicle(id: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("vehicles").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
@@ -98,7 +108,7 @@ export async function deleteVehicle(id: string) {
 
 // ─── MATERIALS CRUD ────────────────────────────────────────
 export async function createMaterial(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const material = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -115,7 +125,7 @@ export async function createMaterial(formData: FormData) {
 }
 
 export async function updateMaterial(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const material = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -132,7 +142,7 @@ export async function updateMaterial(id: string, formData: FormData) {
 }
 
 export async function deleteMaterial(id: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("materials").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
@@ -141,21 +151,21 @@ export async function deleteMaterial(id: string) {
 
 // ─── ORDER/BOOKING/INQUIRY STATUS ──────────────────────────
 export async function updateOrderStatus(id: string, status: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("orders").update({ status }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
 }
 
 export async function updateBookingStatus(id: string, status: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("rental_bookings").update({ status }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
 }
 
 export async function updateInquiryStatus(id: string, status: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("inquiries").update({ status }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
@@ -163,7 +173,7 @@ export async function updateInquiryStatus(id: string, status: string) {
 
 // ─── HERO CAROUSEL CRUD ────────────────────────────────────
 export async function createHeroSlide(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("hero_slides").insert({
     eyebrow: String(formData.get("eyebrow") || ""),
     title: String(formData.get("title") || ""),
@@ -180,7 +190,7 @@ export async function createHeroSlide(formData: FormData) {
 }
 
 export async function updateHeroSlide(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("hero_slides").update({
     eyebrow: String(formData.get("eyebrow") || ""),
     title: String(formData.get("title") || ""),
@@ -197,7 +207,7 @@ export async function updateHeroSlide(id: string, formData: FormData) {
 }
 
 export async function deleteHeroSlide(id: string) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("hero_slides").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/")
@@ -205,7 +215,7 @@ export async function deleteHeroSlide(id: string) {
 }
 
 export async function toggleHeroSlide(id: string, isActive: boolean) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const { error } = await supabase.from("hero_slides").update({ is_active: isActive }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/")
@@ -214,7 +224,7 @@ export async function toggleHeroSlide(id: string, isActive: boolean) {
 
 // ─── IMAGE UPLOAD ───────────────────────────────────────────
 export async function uploadImage(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await getAdminClient()
   const file = formData.get("file") as File
   const bucket = formData.get("bucket") as string || "products"
 

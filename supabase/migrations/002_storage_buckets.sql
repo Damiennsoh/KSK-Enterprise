@@ -18,14 +18,12 @@ CREATE POLICY "Public can view images" ON storage.objects
 
 DROP POLICY IF EXISTS "Admins can upload images" ON storage.objects;
 CREATE POLICY "Admins can upload images" ON storage.objects
-  FOR INSERT WITH CHECK (
-    bucket_id IN ('products', 'vehicles', 'materials') AND
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
+  FOR INSERT TO authenticated WITH CHECK (
+    bucket_id IN ('products', 'vehicles', 'materials') AND public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Admins can delete images" ON storage.objects;
 CREATE POLICY "Admins can delete images" ON storage.objects
-  FOR DELETE USING (
-    bucket_id IN ('products', 'vehicles', 'materials') AND
-    (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
+  FOR DELETE TO authenticated USING (
+    bucket_id IN ('products', 'vehicles', 'materials') AND public.is_admin()
   );
