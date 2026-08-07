@@ -19,12 +19,8 @@ export function Header() {
       
       if (authUser) {
         setUser({ email: authUser.email! })
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", authUser.id)
-          .single()
-        setIsAdmin(profile?.role === "admin")
+        const { data: admin } = await supabase.rpc("is_admin")
+        setIsAdmin(admin === true)
       }
     }
     checkAdmin()
