@@ -18,13 +18,13 @@ A full-stack multi-business ecommerce platform for **KSK Enterprise** based in W
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 (App Router) + TailwindCSS |
+| Frontend | Next.js 14 (App Router) + TailwindCSS + Lucide Icons |
 | Backend | Next.js API Routes + Server Actions |
-| Database | Supabase PostgreSQL |
+| Database | Supabase PostgreSQL + RPC Functions |
 | Auth | Supabase Auth |
-| Storage | Supabase Storage |
+| Storage | Supabase Storage (products, vehicles, materials, hero-slides) |
 | Payments | Paystack (Mobile Money + Bank Cards) |
-| Webhooks | Supabase Edge Functions |
+| RLS | Supabase Row Level Security with SECURITY DEFINER functions |
 | Deployment | Vercel |
 
 ---
@@ -108,10 +108,11 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Storage Buckets
 
-The migration `002_storage_buckets.sql` creates three public buckets:
+The migration `002_storage_buckets.sql` creates four public buckets:
 - `products` — For smock/product images
 - `vehicles` — For car rental images
 - `materials` — For construction material images
+- `hero-slides` — For homepage hero carousel images
 
 ### Row Level Security (RLS)
 
@@ -119,6 +120,7 @@ All tables have RLS enabled with the following policies:
 - **Public read** for products, vehicles, materials
 - **Authenticated users** can create orders, bookings, inquiries
 - **Admin users** (role = 'admin') have full CRUD access
+- **SECURITY DEFINER RPC function** `is_admin()` avoids circular dependency in RLS policies
 
 ---
 
@@ -225,9 +227,11 @@ ksk-enterprise/
 ## Admin Access
 
 1. Register a new account at `/register`
-2. If the email is in the `ADMIN_EMAILS` env variable, the account will automatically be assigned the `admin` role
-3. Access the admin dashboard at `/admin`
-4. Non-admin users will be redirected to the homepage
+2. If the email is in the `ADMIN_EMAILS` env variable, the account will automatically be assigned the `admin` role via the `handle_new_user` trigger
+3. Alternatively, manually update the user's role in Supabase Dashboard > Table Editor > profiles
+4. The `is_admin()` RPC function (SECURITY DEFINER) checks admin role without RLS circular dependency
+5. Access the admin dashboard at `/admin`
+6. Non-admin users will be redirected to the homepage
 
 ---
 
