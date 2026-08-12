@@ -60,7 +60,9 @@ export function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpeg" alt="KSK Enterprise" className="h-10 w-auto object-contain" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+              <img src="/logo.jpeg" alt="KSK Enterprise" className="w-full h-full object-contain" />
+            </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
