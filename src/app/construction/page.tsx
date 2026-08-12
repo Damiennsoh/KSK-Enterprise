@@ -3,7 +3,22 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
-import { Search, Filter, ShoppingCart, HardHat, Phone, Check } from "lucide-react"
+import { Search, Filter, ShoppingCart, HardHat, Phone, Check, Home, Hammer, Wrench, Paintbrush, Droplets, Zap, Layers, DoorOpen, Shovel, RefreshCw, Truck } from "lucide-react"
+
+const services = [
+  { name: "Building Construction", icon: Home, description: "Complete building construction from foundation to finishing" },
+  { name: "Roofing & Plastering", icon: Layers, description: "Professional roofing and plastering services" },
+  { name: "Painting & Decoration", icon: Paintbrush, description: "Interior and exterior painting with quality finishes" },
+  { name: "Plumbing & Electrical Works", icon: Wrench, description: "Complete plumbing and electrical installations" },
+  { name: "POP & Ceiling Works", icon: Droplets, description: "POP designs and ceiling installations" },
+  { name: "Tiling & Flooring", icon: Layers, description: "Professional tiling and flooring solutions" },
+  { name: "China Door Installation", icon: DoorOpen, description: "Quality China door installation services" },
+  { name: "Manhole Construction", icon: Shovel, description: "Manhole construction and maintenance" },
+  { name: "Renovation & Remodeling", icon: RefreshCw, description: "Building renovation and remodeling services" },
+  { name: "Excavation & Site Preparation", icon: Shovel, description: "Site excavation and preparation work" },
+  { name: "Supply of Building Materials", icon: Truck, description: "Quality building materials supply" },
+  { name: "General Construction & Maintenance", icon: Hammer, description: "General construction and maintenance services" },
+]
 
 export default function ConstructionPage() {
   const { addItem } = useCart()
@@ -43,27 +58,45 @@ export default function ConstructionPage() {
     <div className="min-h-screen bg-ksk-cream">
       <div className="bg-ksk-dark py-12 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Construction Materials</h1>
-          <p className="text-gray-400 max-w-xl mx-auto">Quality building materials delivered to your site in Wa and surrounding areas.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">KSK Building & Construction</h1>
+          <p className="text-gray-400 max-w-xl mx-auto">Quality construction services and building materials in Wa, Upper West Region, Ghana.</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Services Section */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-ksk-dark mb-6">Our Services</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {services.map((service) => (
+              <div key={service.name} className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-ksk-gold/10 rounded-lg flex items-center justify-center mb-3">
+                  <service.icon className="w-6 h-6 text-ksk-gold" />
+                </div>
+                <h3 className="font-semibold text-ksk-dark mb-1">{service.name}</h3>
+                <p className="text-sm text-gray-600">{service.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="bg-ksk-green/10 border border-ksk-green/20 rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-ksk-green rounded-full flex items-center justify-center shrink-0">
               <HardHat className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-ksk-dark">Need Construction Services?</h3>
-              <p className="text-sm text-gray-600">We provide skilled labour and full contracting services.</p>
+              <h3 className="font-bold text-ksk-dark">Need a Quote?</h3>
+              <p className="text-sm text-gray-600">Contact us for construction services or material supply.</p>
             </div>
           </div>
           <Link href="/contact" className="flex items-center gap-2 px-5 py-2.5 bg-ksk-green text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shrink-0">
-            <Phone className="w-4 h-4" />Get a Quote
+            <Phone className="w-4 h-4" />Contact Us
           </Link>
         </div>
 
+        <h2 className="text-2xl font-bold text-ksk-dark mb-6">Building Materials</h2>
+        
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

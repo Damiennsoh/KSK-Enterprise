@@ -60,13 +60,7 @@ export function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-ksk-gold rounded-full flex items-center justify-center">
-              <span className="text-ksk-dark font-bold text-lg">K</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-white font-bold text-lg leading-tight">KSK</span>
-              <span className="text-ksk-gold text-xs leading-tight">ENTERPRISE</span>
-            </div>
+            <img src="/logo.jpeg" alt="KSK Enterprise" className="h-10 w-auto object-contain" />
           </Link>
 
           <div className="hidden md:flex items-center gap-6">

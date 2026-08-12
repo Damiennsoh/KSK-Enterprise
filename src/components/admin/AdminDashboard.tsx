@@ -6,8 +6,8 @@ import { HeroCarouselManager } from "@/components/admin/HeroCarouselManager"
 import { ImagePicker } from "@/components/admin/ImagePicker"
 import {
   LayoutDashboard, ShoppingBag, Car, HardHat, MessageSquare,
-  Users, DollarSign, Package, TrendingUp, LogOut,
-  Plus, Edit, Trash2, Eye, Search, Filter, X, Upload, Loader2
+  Users, DollarSign, Package, TrendingUp, LogOut, Home,
+  Plus, Edit, Trash2, Eye, Search, Filter, X, Upload, Loader2, Menu
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { Product, Vehicle, Material, Order, RentalBooking, Inquiry } from "@/types"
@@ -27,6 +27,7 @@ export default function AdminDashboard() {
   const [modalType, setModalType] = useState<"product" | "vehicle" | "material" | null>(null)
   const [editingItem, setEditingItem] = useState<any>(null)
   const [uploading, setUploading] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, bookings: 0, inquiries: 0, users: 0 })
   const [products, setProducts] = useState<Product[]>([])
@@ -130,7 +131,7 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "carousel", label: "Hero Carousel", icon: HardHat },
+    { id: "carousel", label: "Carousel", icon: HardHat },
     { id: "products", label: "Products", icon: Package },
     { id: "orders", label: "Orders", icon: ShoppingBag },
     { id: "bookings", label: "Bookings", icon: Car },
@@ -139,83 +140,93 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Admin Header */}
-      <div className="bg-ksk-dark text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      {/* Admin Header - Standalone */}
+      <div className="bg-ksk-dark text-white sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-ksk-gold rounded-full flex items-center justify-center">
-                <span className="text-ksk-dark font-bold text-sm">K</span>
-              </div>
-              <span className="font-bold">Admin Dashboard</span>
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 hover:bg-white/10 rounded-lg">
+                <Menu className="w-5 h-5" />
+              </button>
+              <img src="/logo.jpeg" alt="KSK Enterprise" className="h-8 w-auto object-contain" />
+              <span className="font-bold text-sm sm:text-base">Admin</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-400 hidden sm:inline">admin@kskenterprise.com</span>
-              <Link href="/" className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors">
-                <LogOut className="w-4 h-4" />Exit
+            <div className="flex items-center gap-2">
+              <Link href="/" className="p-2 hover:bg-white/10 rounded-lg" title="Back to Home">
+                <Home className="w-5 h-5" />
+              </Link>
+              <Link href="/login" className="p-2 hover:bg-white/10 rounded-lg" title="Logout">
+                <LogOut className="w-5 h-5" />
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <div className="lg:w-64 shrink-0">
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-ksk-gold/10 text-ksk-gold border-l-4 border-ksk-gold"
-                      : "text-gray-600 hover:bg-gray-50 border-l-4 border-transparent"
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-          {/* Main Content */}
-          <div className="flex-1">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform lg:transition-none pt-16 lg:pt-0`}>
+          <div className="p-4 space-y-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-ksk-gold text-ksk-dark"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4 lg:p-8">
             {/* OVERVIEW TAB */}
             {activeTab === "overview" && (
               <div>
-                <h2 className="text-2xl font-bold text-ksk-dark mb-6">Dashboard Overview</h2>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark mb-4 lg:mb-6">Overview</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-6 lg:mb-8">
                   {statsArray.map((stat) => (
-                    <div key={stat.label} className="bg-white rounded-xl p-5 border border-gray-100">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center`}>
-                          <stat.icon className="w-5 h-5 text-white" />
+                    <div key={stat.label} className="bg-white rounded-xl p-3 lg:p-5 border border-gray-100">
+                      <div className="flex items-center justify-between mb-2 lg:mb-3">
+                        <div className={`w-8 h-8 lg:w-10 lg:h-10 ${stat.color} rounded-lg flex items-center justify-center`}>
+                          <stat.icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
                         </div>
-                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-green-500 hidden sm:block" />
                       </div>
-                      <p className="text-2xl font-bold text-ksk-dark">{stat.value}</p>
-                      <p className="text-sm text-gray-500">{stat.label}</p>
+                      <p className="text-lg lg:text-2xl font-bold text-ksk-dark">{stat.value}</p>
+                      <p className="text-xs lg:text-sm text-gray-500">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Recent Activity */}
                 <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="font-bold text-ksk-dark">Recent Orders</h3>
+                  <div className="px-4 py-3 lg:px-6 lg:py-4 border-b border-gray-100">
+                    <h3 className="font-bold text-ksk-dark text-sm lg:text-base">Recent Orders</h3>
                   </div>
                   <div className="divide-y divide-gray-100">
                     {orders.slice(0, 3).map((order) => (
-                      <div key={order.id} className="px-6 py-4 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-ksk-dark">{order.id}</p>
-                          <p className="text-sm text-gray-500">{order.customer_name} · {order.phone}</p>
+                      <div key={order.id} className="px-4 py-3 lg:px-6 lg:py-4 flex items-center justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-ksk-dark text-sm truncate">{order.id}</p>
+                          <p className="text-xs text-gray-500 truncate">{order.customer_name}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-ksk-brown">GH₵ {order.total.toFixed(2)}</p>
+                        <div className="text-right ml-2 shrink-0">
+                          <p className="font-bold text-ksk-brown text-sm">GH₵ {order.total.toFixed(2)}</p>
                           <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusColors[order.status]}`}>
                             {order.status}
                           </span>
@@ -233,10 +244,10 @@ export default function AdminDashboard() {
             {/* PRODUCTS TAB */}
             {activeTab === "products" && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-ksk-dark">Products</h2>
-                  <button onClick={() => openModal("product")} className="flex items-center gap-2 px-4 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
-                    <Plus className="w-4 h-4" />Add Product
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Products</h2>
+                  <button onClick={() => openModal("product")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
+                    <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add</span>
                   </button>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -244,22 +255,22 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Product</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Category</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Price</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Stock</th>
-                          <th className="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Product</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Category</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Price</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Stock</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {products.map((p) => (
                           <tr key={p.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 font-medium text-ksk-dark">{p.name}</td>
-                            <td className="px-4 py-3 text-gray-600">{p.category}</td>
-                            <td className="px-4 py-3 text-ksk-brown font-semibold">GH₵ {p.price.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-gray-600">{p.stock}</td>
-                            <td className="px-4 py-3 text-right">
-                              <div className="flex items-center justify-end gap-2">
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{p.name}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{p.category}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {p.price.toFixed(2)}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{p.stock}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
+                              <div className="flex items-center justify-end gap-1 lg:gap-2">
                                 <button onClick={() => openModal("product", p)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
                                 <button onClick={() => handleDelete(p.id, "product")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"><Trash2 className="w-4 h-4" /></button>
                               </div>
@@ -276,12 +287,12 @@ export default function AdminDashboard() {
             {/* ORDERS TAB */}
             {activeTab === "orders" && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-ksk-dark">Orders</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Orders</h2>
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input type="text" placeholder="Search orders..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ksk-gold" />
+                      <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ksk-gold w-40 lg:w-auto" />
                     </div>
                   </div>
                 </div>
@@ -290,26 +301,24 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Order ID</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Customer</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Phone</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Customer</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Total</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {orders.map((o) => (
                           <tr key={o.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 font-medium text-ksk-dark">{o.id}</td>
-                            <td className="px-4 py-3 text-gray-600">{o.customer_name}</td>
-                            <td className="px-4 py-3 text-gray-600">{o.phone}</td>
-                            <td className="px-4 py-3 font-semibold text-ksk-brown">GH₵ {o.total.toFixed(2)}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{o.id.slice(0, 8)}...</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{o.customer_name}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-semibold text-ksk-brown text-sm">GH₵ {o.total.toFixed(2)}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3">
                               <select
                                 value={o.status}
                                 onChange={(e) => handleStatusUpdate(o.id, e.target.value, "order")}
-                                className={`px-2 py-0.5 rounded text-xs font-medium border-0 ${statusColors[o.status]}`}
+                                className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[o.status]}`}
                               >
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
@@ -318,7 +327,7 @@ export default function AdminDashboard() {
                                 <option value="cancelled">Cancelled</option>
                               </select>
                             </td>
-                            <td className="px-4 py-3 text-gray-500">{new Date(o.created_at).toLocaleDateString()}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(o.created_at).toLocaleDateString()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -331,10 +340,10 @@ export default function AdminDashboard() {
             {/* BOOKINGS TAB */}
             {activeTab === "bookings" && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-ksk-dark">Rental Bookings</h2>
-                  <button onClick={() => openModal("vehicle")} className="flex items-center gap-2 px-4 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
-                    <Plus className="w-4 h-4" />Add Vehicle
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Bookings</h2>
+                  <button onClick={() => openModal("vehicle")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
+                    <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Vehicle</span>
                   </button>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -342,12 +351,12 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Booking ID</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Customer</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Vehicle</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Days</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Customer</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Vehicle</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Date</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Days</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -355,16 +364,16 @@ export default function AdminDashboard() {
                           const vehicle = vehicles.find(v => v.id === b.vehicle_id)
                           return (
                             <tr key={b.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium text-ksk-dark">{b.id}</td>
-                              <td className="px-4 py-3 text-gray-600">{b.customer_name}<br /><span className="text-xs text-gray-400">{b.phone}</span></td>
-                              <td className="px-4 py-3 text-gray-600">{vehicle?.name || "Unknown"}</td>
-                              <td className="px-4 py-3 text-gray-600">{new Date(b.rental_date).toLocaleDateString()}</td>
-                              <td className="px-4 py-3 text-gray-600">{b.days}</td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{b.id.slice(0, 8)}...</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{b.customer_name}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{vehicle?.name || "Unknown"}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm">{new Date(b.rental_date).toLocaleDateString()}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{b.days}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3">
                                 <select
                                   value={b.status}
                                   onChange={(e) => handleStatusUpdate(b.id, e.target.value, "booking")}
-                                  className={`px-2 py-0.5 rounded text-xs font-medium border-0 ${statusColors[b.status]}`}
+                                  className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[b.status]}`}
                                 >
                                   <option value="pending">Pending</option>
                                   <option value="confirmed">Confirmed</option>
@@ -381,35 +390,35 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Vehicles List */}
-                <div className="mt-8">
-                  <h3 className="text-xl font-bold text-ksk-dark mb-4">Vehicles</h3>
+                <div className="mt-6 lg:mt-8">
+                  <h3 className="text-lg lg:text-xl font-bold text-ksk-dark mb-3 lg:mb-4">Vehicles</h3>
                   <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Vehicle</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Brand</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Model</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Price/Day</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Available</th>
-                            <th className="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Vehicle</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Brand</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Model</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Price/Day</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Available</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {vehicles.map((v) => (
                             <tr key={v.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium text-ksk-dark">{v.name}</td>
-                              <td className="px-4 py-3 text-gray-600">{v.brand}</td>
-                              <td className="px-4 py-3 text-gray-600">{v.model}</td>
-                              <td className="px-4 py-3 text-ksk-brown font-semibold">GH₵ {v.price_per_day.toFixed(2)}</td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{v.name}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{v.brand}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{v.model}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {v.price_per_day.toFixed(2)}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 hidden md:table-cell">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${v.is_available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                   {v.is_available ? "Yes" : "No"}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-2">
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
+                                <div className="flex items-center justify-end gap-1 lg:gap-2">
                                   <button onClick={() => openModal("vehicle", v)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
                                   <button onClick={() => handleDelete(v.id, "vehicle")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"><Trash2 className="w-4 h-4" /></button>
                                 </div>
@@ -427,10 +436,10 @@ export default function AdminDashboard() {
             {/* INQUIRIES TAB */}
             {activeTab === "inquiries" && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-ksk-dark">Construction Inquiries</h2>
-                  <button onClick={() => openModal("material")} className="flex items-center gap-2 px-4 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
-                    <Plus className="w-4 h-4" />Add Material
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Inquiries</h2>
+                  <button onClick={() => openModal("material")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
+                    <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Material</span>
                   </button>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -438,33 +447,33 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">ID</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Message</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Name</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Type</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden lg:table-cell">Message</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {inquiries.map((i) => (
                           <tr key={i.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 font-medium text-ksk-dark">{i.id}</td>
-                            <td className="px-4 py-3 text-gray-600">{i.name}<br /><span className="text-xs text-gray-400">{i.phone}</span></td>
-                            <td className="px-4 py-3"><span className="capitalize text-gray-600">{i.type}</span></td>
-                            <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{i.message}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{i.name}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell capitalize">{i.type}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden lg:table-cell max-w-xs truncate">{i.message}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3">
                               <select
                                 value={i.status}
                                 onChange={(e) => handleStatusUpdate(i.id, e.target.value, "inquiry")}
-                                className={`px-2 py-0.5 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
+                                className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
                               >
                                 <option value="new">New</option>
                                 <option value="in_progress">In Progress</option>
                                 <option value="resolved">Resolved</option>
                               </select>
                             </td>
-                            <td className="px-4 py-3 text-gray-500">{new Date(i.created_at).toLocaleDateString()}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(i.created_at).toLocaleDateString()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -473,31 +482,31 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Materials List */}
-                <div className="mt-8">
-                  <h3 className="text-xl font-bold text-ksk-dark mb-4">Materials</h3>
+                <div className="mt-6 lg:mt-8">
+                  <h3 className="text-lg lg:text-xl font-bold text-ksk-dark mb-3 lg:mb-4">Materials</h3>
                   <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Material</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Category</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Price</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Unit</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-600">Stock</th>
-                            <th className="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Material</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Category</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Price</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Unit</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Stock</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {materials.map((m) => (
                             <tr key={m.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium text-ksk-dark">{m.name}</td>
-                              <td className="px-4 py-3 text-gray-600">{m.category}</td>
-                              <td className="px-4 py-3 text-ksk-brown font-semibold">GH₵ {m.price.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-gray-600">{m.unit}</td>
-                              <td className="px-4 py-3 text-gray-600">{m.stock}</td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-2">
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{m.name}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{m.category}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {m.price.toFixed(2)}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.unit}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.stock}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
+                                <div className="flex items-center justify-end gap-1 lg:gap-2">
                                   <button onClick={() => openModal("material", m)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
                                   <button onClick={() => handleDelete(m.id, "material")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"><Trash2 className="w-4 h-4" /></button>
                                 </div>
@@ -511,7 +520,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
 
