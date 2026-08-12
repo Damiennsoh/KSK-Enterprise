@@ -14,8 +14,8 @@ export function Footer() {
           {/* Company info */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-ksk-gold rounded-full flex items-center justify-center">
-                <span className="text-ksk-dark font-bold text-sm">K</span>
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                <img src="/logo.jpeg" alt="KSK Enterprise" className="w-full h-full object-contain" />
               </div>
               <span className="text-white font-bold text-lg">KSK Enterprise</span>
             </div>
