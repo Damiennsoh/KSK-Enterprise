@@ -5,18 +5,36 @@
 -- ============================================================
 
 -- ─── PRODUCTS (Fashion / Smocks) ────────────────────────────
-INSERT INTO products (name, description, price, category, sizes, colors, images, stock) VALUES
-('Traditional Fugu Smock', 'Hand-woven traditional smock made by skilled artisans in the Upper West Region. Features intricate geometric patterns and comfortable fit.', 350.00, 'Smocks', ARRAY['S', 'M', 'L', 'XL', 'XXL'], ARRAY['White/Black', 'Blue/White', 'Red/Black', 'Green/Yellow'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800', 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 25),
+INSERT INTO products (name, description, price, category, sizes, colors, images, stock, length_cm, width_cm) VALUES
+('Royal Men''s Fugu Smock', 'Hand-woven traditional men''s smock made by skilled artisans in the Upper West Region. Features intricate geometric patterns and comfortable fit. Perfect for traditional events and weddings.', 380.00, 'Male Smocks', ARRAY['S', 'M', 'L', 'XL', 'XXL'], ARRAY['White/Black', 'Blue/White', 'Red/Black', 'Green/Yellow'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800', 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 25, 120, 75),
 
-('Premium Wedding Fugu', 'Elegant hand-woven smock perfect for weddings and special occasions. Made with premium cotton threads.', 550.00, 'Smocks', ARRAY['M', 'L', 'XL', 'XXL'], ARRAY['White/Gold', 'Cream/Brown', 'Navy/Silver'], ARRAY['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800', 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 15),
+('Premium Wedding Fugu for Men', 'Elegant hand-woven smock perfect for grooms and wedding parties. Made with premium cotton threads and metallic thread accents.', 600.00, 'Male Smocks', ARRAY['M', 'L', 'XL', 'XXL'], ARRAY['White/Gold', 'Cream/Brown', 'Navy/Silver'], ARRAY['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800', 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 15, 125, 80),
 
-('Casual Everyday Smock', 'Lightweight and breathable smock for daily wear. Comfortable for all-day use in the Ghanaian climate.', 180.00, 'Smocks', ARRAY['S', 'M', 'L', 'XL'], ARRAY['White', 'Beige', 'Light Blue', 'Grey'], ARRAY['https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 40),
+('Executive Corporate Smock for Men', 'Modern interpretation of the traditional smock, suitable for corporate and formal settings. Subtle patterns for professional look.', 450.00, 'Male Smocks', ARRAY['M', 'L', 'XL', 'XXL'], ARRAY['Black/White', 'Navy/Gold', 'Charcoal/Silver'], ARRAY['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800', 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 10, 122, 78),
 
-('Children Traditional Smock', 'Adorable mini smocks for children. Available in various sizes for ages 3-12.', 120.00, 'Smocks', ARRAY['XS', 'S', 'M'], ARRAY['White/Blue', 'Red/Yellow', 'Green/White'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 20),
+('Queen Women''s Fugu Smock', 'Beautiful hand-woven women''s smock with elegant draping. Perfect for traditional ceremonies and special occasions.', 420.00, 'Female Smocks', ARRAY['S', 'M', 'L', 'XL'], ARRAY['Pink/Gold', 'Purple/White', 'Red/Gold', 'Green/Black'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 20, 115, 70),
 
-('Executive Corporate Smock', 'Modern interpretation of the traditional smock, suitable for corporate and formal settings.', 420.00, 'Smocks', ARRAY['M', 'L', 'XL', 'XXL'], ARRAY['Black/White', 'Navy/Gold', 'Charcoal/Silver'], ARRAY['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800', 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 12),
+('Elegant Women''s Wedding Smock', 'Stunning bridal smock with intricate embroidery and kente accents. A perfect choice for traditional weddings.', 650.00, 'Female Smocks', ARRAY['S', 'M', 'L', 'XL'], ARRAY['White/Gold', 'Cream/Rose Gold', 'Ivory/Silver'], ARRAY['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800'], 8, 118, 72),
 
-('Hand-Woven Kente Scarf', 'Beautiful Kente scarf to complement your smock. Made with authentic kente patterns.', 85.00, 'Accessories', ARRAY['One Size'], ARRAY['Multi-color', 'Gold/Green', 'Red/Black'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 30);
+('Women''s Casual Kente Smock', 'Lightweight casual smock for women with beautiful kente patterns. Great for everyday wear.', 250.00, 'Female Smocks', ARRAY['S', 'M', 'L', 'XL'], ARRAY['Multi-color', 'Blue/Green', 'Orange/Purple'], ARRAY['https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 30, 110, 68),
+
+('Children Traditional Smock - Boys', 'Adorable mini smocks for boys. Available in various sizes for ages 3-12. Durable and comfortable for active kids.', 130.00, 'Children Smocks', ARRAY['3-4 yrs', '5-6 yrs', '7-8 yrs', '9-10 yrs', '11-12 yrs'], ARRAY['White/Blue', 'Red/Yellow', 'Green/White'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 22, 60, 35),
+
+('Children Traditional Smock - Girls', 'Pretty mini smocks for girls with colorful patterns. Available in various sizes for ages 3-12.', 140.00, 'Children Smocks', ARRAY['3-4 yrs', '5-6 yrs', '7-8 yrs', '9-10 yrs', '11-12 yrs'], ARRAY['Pink/White', 'Purple/Gold', 'Yellow/Blue'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 18, 58, 33),
+
+('Hand-Woven Kente Scarf - Unisex', 'Beautiful Kente scarf to complement your smock. Made with authentic hand-woven kente patterns. Can be styled in multiple ways.', 95.00, 'Accessories', ARRAY['One Size'], ARRAY['Multi-color', 'Gold/Green', 'Red/Black', 'Blue/Yellow'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 50, 180, 30),
+
+('Traditional Fugu Cap (Kufi)', 'Handmade kufi cap matching our fugu smocks. Perfect for completing your traditional look.', 60.00, 'Hats', ARRAY['Small', 'Medium', 'Large', 'X-Large'], ARRAY['White/Black', 'Black/Gold', 'Blue/White', 'Red/Black'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 35, 18, 18),
+
+('Royal Kente Hat', 'Elegant kente-woven hat for special occasions. Authentic Ghanaian craftsmanship.', 80.00, 'Hats', ARRAY['Medium', 'Large', 'X-Large'], ARRAY['Gold/Green', 'Red/Black', 'Multi-color'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 15, 20, 20),
+
+('Handcrafted Leather Sandals - Men', 'Quality leather sandals made by local craftsmen. Comfortable and durable with traditional designs.', 120.00, 'Sandals', ARRAY['39', '40', '41', '42', '43', '44', '45'], ARRAY['Brown', 'Black', 'Tan'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 28, 28, 10),
+
+('Beaded Sandals - Women', 'Beautiful hand-beaded women''s sandals. Perfect for traditional events and casual outings.', 110.00, 'Sandals', ARRAY['36', '37', '38', '39', '40', '41'], ARRAY['Gold', 'Silver', 'Multi-color', 'Red/Black'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 22, 25, 9),
+
+('Children Sandals', 'Colorful and durable sandals for kids. Comfortable for everyday wear.', 50.00, 'Sandals', ARRAY['25', '26', '27', '28', '29', '30', '31', '32'], ARRAY['Blue', 'Red', 'Pink', 'Green', 'Yellow'], ARRAY['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800'], 8, 18, 7),
+
+('Casual Everyday Men''s Smock', 'Lightweight and breathable smock for daily wear. Comfortable for all-day use in the Ghanaian climate.', 200.00, 'Male Smocks', ARRAY['S', 'M', 'L', 'XL'], ARRAY['White', 'Beige', 'Light Blue', 'Grey'], ARRAY['https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800'], 45, 118, 74);
 
 -- ─── VEHICLES (Car Rentals) ──────────────────────────────────
 INSERT INTO vehicles (name, model, brand, seats, price_per_day, deposit, images, description, is_available) VALUES
