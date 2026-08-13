@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Menu, X, ShoppingCart, Phone, LogIn, LogOut, User } from "lucide-react"
 import { useCart } from "@/context/CartContext"
 import { createClient } from "@/lib/supabase/client"
 
 export function Header() {
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [user, setUser] = useState<{ email: string } | null>(null)
@@ -34,6 +36,10 @@ export function Header() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  if (pathname?.startsWith("/admin")) {
+    return null
+  }
 
   const navLinks = [
     { href: "/", label: "Home" },
