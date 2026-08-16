@@ -30,14 +30,23 @@ export async function signUp(formData: FormData) {
 
     console.log("Sign up successful, user ID:", data.user?.id)
 
-    // Check if email is in admin list and update role
-    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || []
-    if (adminEmails.includes(email)) {
-      console.log("Setting admin role for:", email)
+    // Create profile manually since trigger is disabled
+    if (data.user?.id) {
       const adminClient = createAdminClient()
-      const { error: updateError } = await adminClient.from("profiles").update({ role: "admin" }).eq("id", data.user!.id)
-      if (updateError) {
-        console.error("Failed to set admin role:", updateError)
+      const adminEmails = process.env.ADMIN_EMAILS?.split(",") || []
+      const isAdmin = adminEmails.includes(email)
+      
+      const { error: profileError } = await adminClient.from("profiles").insert({
+        id: data.user.id,
+        email: email,
+        full_name: fullName,
+        phone: phone,
+        role: isAdmin ? "admin" : "user"
+      })
+      
+      if (profileError) {
+        console.error("Failed to create profile:", profileError)
+        // Don't fail registration if profile creation fails
       }
     }
 
