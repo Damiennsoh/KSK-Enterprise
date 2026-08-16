@@ -5,6 +5,19 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
+/**
+ * Next.js `redirect()` throws a special error that MUST NOT be caught by
+ * the generic `catch (error)` blocks below. Without this helper, every
+ * successful signIn/signUp/signOut would surface as
+ *   "An unexpected error occurred"
+ * even though the user was already authenticated and cookies were written.
+ */
+function isRedirectError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false
+  const digest = (error as { digest?: unknown }).digest
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")
+}
+
 export async function signUp(formData: FormData) {
   try {
     const supabase = await createClient()
@@ -53,6 +66,7 @@ export async function signUp(formData: FormData) {
     revalidatePath("/", "layout")
     redirect("/login?message=Account created successfully. Please sign in.")
   } catch (error) {
+    if (isRedirectError(error)) throw error // Let Next.js handle the redirect
     console.error("Unexpected sign up error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
@@ -77,16 +91,24 @@ export async function signIn(formData: FormData) {
     revalidatePath("/", "layout")
     redirect("/")
   } catch (error) {
+    if (isRedirectError(error)) throw error // Let Next.js handle the redirect
     console.error("Unexpected sign in error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }
 
 export async function signOut() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  revalidatePath("/", "layout")
-  redirect("/")
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    revalidatePath("/", "layout")
+    redirect("/")
+  } catch (error) {
+    if (isRedirectError(error)) throw error // Let Next.js handle the redirect
+    console.error("Unexpected sign out error:", error)
+    revalidatePath("/", "layout")
+    redirect("/")
+  }
 }
 
 export async function getUser() {
