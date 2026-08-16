@@ -17,7 +17,7 @@ import {
   createMaterial, updateMaterial, deleteMaterial,
   updateOrderStatus, updateBookingStatus, updateInquiryStatus
 } from "@/lib/actions/admin"
-import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries } from "@/lib/actions/products"
+import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries, getUserCount } from "@/lib/actions/products"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const [uploading, setUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, bookings: 0, inquiries: 0, users: 0 })
+  const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, materials: 0, bookings: 0, inquiries: 0, users: 0 })
   const [products, setProducts] = useState<Product[]>([])
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [materials, setMaterials] = useState<Material[]>([])
@@ -44,13 +44,14 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [productsData, vehiclesData, materialsData, ordersData, bookingsData, inquiriesData] = await Promise.all([
+      const [productsData, vehiclesData, materialsData, ordersData, bookingsData, inquiriesData, userCount] = await Promise.all([
         getProducts(),
         getVehicles(),
         getMaterials(),
         getOrders(),
         getRentalBookings(),
-        getInquiries()
+        getInquiries(),
+        getUserCount()
       ])
       setProducts(productsData)
       setVehicles(vehiclesData)
@@ -60,11 +61,14 @@ export default function AdminDashboard() {
       setInquiries(inquiriesData)
       setStats({
         orders: ordersData.length,
-        revenue: ordersData.reduce((sum, o) => sum + o.total, 0),
+        revenue: ordersData
+          .filter(o => o.status !== 'cancelled')
+          .reduce((sum, o) => sum + (o.total || 0), 0),
         products: productsData.length,
+        materials: materialsData.length,
         bookings: bookingsData.length,
         inquiries: inquiriesData.length,
-        users: 0
+        users: userCount
       })
     } catch (error) {
       console.error("Error loading data:", error)
@@ -89,9 +93,10 @@ export default function AdminDashboard() {
     { label: "Total Orders", value: stats.orders.toString(), icon: ShoppingBag, color: "bg-blue-500" },
     { label: "Total Revenue", value: `GH₵ ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "bg-green-500" },
     { label: "Fashion Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
+    { label: "Construction Materials", value: stats.materials.toString(), icon: HardHat, color: "bg-orange-500" },
     { label: "Car Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
     { label: "Construction Inquiries", value: stats.inquiries.toString(), icon: MessageSquare, color: "bg-rose-500" },
-    { label: "New Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
+    { label: "Registered Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
   ]
 
   const handleDelete = async (id: string, type: "product" | "vehicle" | "material") => {
