@@ -28,7 +28,7 @@ BEGIN
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
     CASE 
-      WHEN NEW.email = ANY(string_to_array(current_setting('app.settings.admin_emails', true), ',')) 
+      WHEN NEW.email = 'admin@kskenterprise.com' 
       THEN 'admin' 
       ELSE 'user' 
     END
