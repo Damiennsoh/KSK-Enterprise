@@ -2,6 +2,11 @@
 -- ============================================================
 -- KSK Enterprise - Seed Data
 -- Run this after migrations to populate the database
+-- 
+-- NOTE: This file contains only business data (products, vehicles, materials)
+-- Authentication users are NOT seeded here - they are created through:
+-- 1. The app's registration flow (triggers handle_new_user function)
+-- 2. Manual creation in Supabase Auth dashboard
 -- ============================================================
 
 -- ─── PRODUCTS (Fashion / Smocks) ────────────────────────────
