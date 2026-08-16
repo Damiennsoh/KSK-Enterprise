@@ -34,18 +34,24 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-
   // Protect admin routes
   if (request.nextUrl.pathname.startsWith("/admin")) {
-    if (!user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        return NextResponse.redirect(new URL("/login", request.url))
+      }
+      
+      // Use the SECURITY DEFINER helper so the middleware does not query the
+      // profiles table through its own admin RLS policy.
+      const { data: admin } = await supabase.rpc("is_admin")
+      if (admin !== true) {
+        return NextResponse.redirect(new URL("/", request.url))
+      }
+    } catch (error) {
+      // If there's any auth error (like invalid refresh token), redirect to login
       return NextResponse.redirect(new URL("/login", request.url))
-    }
-    // Use the SECURITY DEFINER helper so the middleware does not query the
-    // profiles table through its own admin RLS policy.
-    const { data: admin } = await supabase.rpc("is_admin")
-    if (admin !== true) {
-      return NextResponse.redirect(new URL("/", request.url))
     }
   }
 
