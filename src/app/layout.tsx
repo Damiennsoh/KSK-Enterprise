@@ -3,7 +3,6 @@ import "./globals.css"
 import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { CartProvider } from "@/context/CartContext"
-import { headers } from "next/headers"
 
 export const metadata: Metadata = {
   title: "KSK Enterprise | Fashion, Car Rentals & Construction - Wa, Ghana",
@@ -34,17 +33,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const headersList = headers()
-  const pathname = headersList.get("x-pathname") || "/"
-  const isAdmin = pathname.startsWith("/admin")
-
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
         <CartProvider>
-          {!isAdmin && <Header />}
+          <Header />
           <main className="flex-1">{children}</main>
-          {!isAdmin && <Footer />}
+          <Footer />
         </CartProvider>
       </body>
     </html>

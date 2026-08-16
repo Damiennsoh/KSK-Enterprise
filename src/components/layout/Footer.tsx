@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Phone, Mail, MapPin, Facebook, Instagram } from "lucide-react"
 
 /**
@@ -6,6 +9,12 @@ import { Phone, Mail, MapPin, Facebook, Instagram } from "lucide-react"
  * Displays company info, quick links, and contact details.
  */
 export function Footer() {
+  const pathname = usePathname()
+
+  if (pathname?.startsWith("/admin")) {
+    return null
+  }
+
   return (
     <footer className="bg-ksk-dark text-gray-400">
       {/* Main footer */}

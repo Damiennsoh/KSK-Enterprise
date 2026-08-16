@@ -17,6 +17,8 @@ async function getAdminClient() {
 // ─── PRODUCTS CRUD ──────────────────────────────────────────
 export async function createProduct(formData: FormData) {
   const supabase = await getAdminClient()
+  const lengthVal = formData.get("length_cm") as string
+  const widthVal = formData.get("width_cm") as string
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -26,6 +28,8 @@ export async function createProduct(formData: FormData) {
     colors: (formData.get("colors") as string).split(",").map((s) => s.trim()).filter(Boolean),
     images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     stock: parseInt(formData.get("stock") as string),
+    length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
+    width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
   }
   const { error } = await supabase.from("products").insert(product)
   if (error) throw new Error(error.message)
@@ -35,6 +39,8 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(id: string, formData: FormData) {
   const supabase = await getAdminClient()
+  const lengthVal = formData.get("length_cm") as string
+  const widthVal = formData.get("width_cm") as string
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -44,6 +50,8 @@ export async function updateProduct(id: string, formData: FormData) {
     colors: (formData.get("colors") as string).split(",").map((s) => s.trim()).filter(Boolean),
     images: formData.getAll("images").flatMap((value) => String(value).split(",")).map((s) => s.trim()).filter(Boolean),
     stock: parseInt(formData.get("stock") as string),
+    length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
+    width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
   }
   const { error } = await supabase.from("products").update(product).eq("id", id)
   if (error) throw new Error(error.message)

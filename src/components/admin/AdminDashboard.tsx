@@ -88,9 +88,9 @@ export default function AdminDashboard() {
   const statsArray = [
     { label: "Total Orders", value: stats.orders.toString(), icon: ShoppingBag, color: "bg-blue-500" },
     { label: "Total Revenue", value: `GH₵ ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "bg-green-500" },
-    { label: "Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
-    { label: "Rental Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
-    { label: "Inquiries", value: stats.inquiries.toString(), icon: MessageSquare, color: "bg-rose-500" },
+    { label: "Fashion Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
+    { label: "Car Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
+    { label: "Construction Inquiries", value: stats.inquiries.toString(), icon: MessageSquare, color: "bg-rose-500" },
     { label: "New Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
   ]
 
@@ -132,10 +132,10 @@ export default function AdminDashboard() {
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "carousel", label: "Carousel", icon: HardHat },
-    { id: "products", label: "Products", icon: Package },
+    { id: "products", label: "Fashion Products", icon: Package },
     { id: "orders", label: "Orders", icon: ShoppingBag },
-    { id: "bookings", label: "Bookings", icon: Car },
-    { id: "inquiries", label: "Inquiries", icon: MessageSquare },
+    { id: "bookings", label: "Car Bookings", icon: Car },
+    { id: "inquiries", label: "Construction Inquiries", icon: MessageSquare },
   ]
 
   return (
@@ -148,7 +148,6 @@ export default function AdminDashboard() {
               <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 hover:bg-white/10 rounded-lg">
                 <Menu className="w-5 h-5" />
               </button>
-              <img src="/logo.jpeg" alt="KSK Enterprise" className="h-8 w-auto object-contain" />
               <span className="font-bold text-sm sm:text-base">Admin</span>
             </div>
             <div className="flex items-center gap-2">
@@ -245,7 +244,7 @@ export default function AdminDashboard() {
             {activeTab === "products" && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Products</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Fashion Products</h2>
                   <button onClick={() => openModal("product")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
                     <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add</span>
                   </button>
@@ -268,7 +267,19 @@ export default function AdminDashboard() {
                             <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{p.name}</td>
                             <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{p.category}</td>
                             <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {p.price.toFixed(2)}</td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{p.stock}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-sm hidden md:table-cell">
+                              <div className="flex items-center gap-2">
+                                <span className={p.stock < 10 ? "text-ksk-red font-bold" : p.stock < 20 ? "text-amber-600 font-semibold" : "text-gray-600"}>
+                                  {p.stock}
+                                </span>
+                                {p.stock < 10 && (
+                                  <span className="px-2 py-0.5 bg-ksk-red/10 text-ksk-red text-xs font-semibold rounded-full">Low Stock</span>
+                                )}
+                                {p.stock >= 10 && p.stock < 20 && (
+                                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Limited</span>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
                               <div className="flex items-center justify-end gap-1 lg:gap-2">
                                 <button onClick={() => openModal("product", p)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
@@ -341,7 +352,7 @@ export default function AdminDashboard() {
             {activeTab === "bookings" && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Bookings</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Car Bookings</h2>
                   <button onClick={() => openModal("vehicle")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
                     <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Vehicle</span>
                   </button>
@@ -437,7 +448,7 @@ export default function AdminDashboard() {
             {activeTab === "inquiries" && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Inquiries</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Construction Inquiries</h2>
                   <button onClick={() => openModal("material")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
                     <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Material</span>
                   </button>
@@ -504,7 +515,19 @@ export default function AdminDashboard() {
                               <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{m.category}</td>
                               <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {m.price.toFixed(2)}</td>
                               <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.unit}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.stock}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-sm hidden md:table-cell">
+                                <div className="flex items-center gap-2">
+                                  <span className={m.stock < 20 ? "text-ksk-red font-bold" : m.stock < 100 ? "text-amber-600 font-semibold" : "text-gray-600"}>
+                                    {m.stock}
+                                  </span>
+                                  {m.stock < 20 && (
+                                    <span className="px-2 py-0.5 bg-ksk-red/10 text-ksk-red text-xs font-semibold rounded-full">Low Stock</span>
+                                  )}
+                                  {m.stock >= 20 && m.stock < 100 && (
+                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Limited</span>
+                                  )}
+                                </div>
+                              </td>
                               <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
                                 <div className="flex items-center justify-end gap-1 lg:gap-2">
                                   <button onClick={() => openModal("material", m)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
@@ -529,7 +552,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
               <h3 className="text-xl font-bold text-ksk-dark">
-                {editingItem ? `Edit ${modalType}` : `Add ${modalType}`}
+                {editingItem ? `Edit ${modalType === "product" ? "Fashion Product" : modalType === "vehicle" ? "Vehicle" : "Material"}` : `Add ${modalType === "product" ? "Fashion Product" : modalType === "vehicle" ? "Vehicle" : "Material"}`}
               </h3>
               <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="w-5 h-5" />
@@ -578,10 +601,27 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <input name="category" defaultValue={editingItem?.category} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
+                    <select name="category" defaultValue={editingItem?.category || "Male Smocks"} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent">
+                      <option value="Male Smocks">Male Smocks</option>
+                      <option value="Female Smocks">Female Smocks</option>
+                      <option value="Children Smocks">Children Smocks</option>
+                      <option value="Accessories">Accessories</option>
+                      <option value="Hats">Hats</option>
+                      <option value="Sandals">Sandals</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Length (cm)</label>
+                      <input name="length_cm" type="number" step="0.1" defaultValue={editingItem?.length_cm ?? ""} placeholder="e.g., 120" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Width (cm)</label>
+                      <input name="width_cm" type="number" step="0.1" defaultValue={editingItem?.width_cm ?? ""} placeholder="e.g., 80" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma-separated)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma-separated, e.g., S, M, L, XL, XXL)</label>
                     <input name="sizes" defaultValue={editingItem?.sizes?.join(", ") || ""} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
                   </div>
                   <div>

@@ -14,6 +14,8 @@ export interface Product {
   colors: string[]
   images: string[]
   stock: number
+  length_cm: number | null
+  width_cm: number | null
   created_at: string
 }
 
