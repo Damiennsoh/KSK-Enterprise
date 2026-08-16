@@ -1,6 +1,9 @@
+-- Set the admin_emails configuration in the database
+-- This allows the trigger function to check against the admin email list
+SET app.settings.admin_emails = 'admin@kskenterprise.com';
+
 -- Fix existing admin role for admin@kskenterprise.com
 -- This ensures the admin user has the correct role in the profiles table
-
 UPDATE public.profiles 
 SET role = 'admin' 
 WHERE email = 'admin@kskenterprise.com';
