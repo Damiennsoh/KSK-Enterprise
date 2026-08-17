@@ -193,13 +193,33 @@ export async function updateInquiryStatus(id: string, status: string) {
 
 export async function markInquiryAsRead(id: string) {
   const supabase = await getAdminClient()
+  // Check if is_read column exists by trying to query it first
+  const { data: test, error: testError } = await supabase.from("inquiries").select("is_read").eq("id", id).single()
+  
+  if (testError && testError.code === "42703") {
+    // Column doesn't exist, skip this operation
+    console.warn("is_read column doesn't exist in database. Please run the migration.")
+    return
+  }
+  
   const { error } = await supabase.from("inquiries").update({ is_read: true }).eq("id", id)
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error("Error marking inquiry as read:", error)
+    throw new Error(error.message)
+  }
   revalidatePath("/admin")
 }
 
 export async function archiveInquiry(id: string) {
   const supabase = await getAdminClient()
+  // Check if is_archived column exists
+  const { data: test, error: testError } = await supabase.from("inquiries").select("is_archived").eq("id", id).single()
+  
+  if (testError && testError.code === "42703") {
+    console.warn("is_archived column doesn't exist in database. Please run the migration.")
+    return
+  }
+  
   const { error } = await supabase.from("inquiries").update({ is_archived: true, status: "archived" }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
@@ -207,6 +227,14 @@ export async function archiveInquiry(id: string) {
 
 export async function unarchiveInquiry(id: string) {
   const supabase = await getAdminClient()
+  // Check if is_archived column exists
+  const { data: test, error: testError } = await supabase.from("inquiries").select("is_archived").eq("id", id).single()
+  
+  if (testError && testError.code === "42703") {
+    console.warn("is_archived column doesn't exist in database. Please run the migration.")
+    return
+  }
+  
   const { error } = await supabase.from("inquiries").update({ is_archived: false, status: "new" }).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin")
