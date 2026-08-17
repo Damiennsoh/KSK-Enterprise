@@ -50,7 +50,7 @@ export default function ConstructionPage() {
     }
   }
 
-  const allCategories = ["all", "Cement", "Blocks", "Steel", "Roofing", "Aggregate", "Paint", "Tiles", "Hardware", "Timber", "Plumbing"]
+  const allCategories = ["all", "Cement", "Blocks", "Steel", "Roofing", "Aggregate", "Paint", "Tiles", "Hardware", "Timber", "Plumbing", "Doors"]
   const priceRanges = [
     { value: "all", label: "All Prices" },
     { value: "0-50", label: "Under GH₵50" },
