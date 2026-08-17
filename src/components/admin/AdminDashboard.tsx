@@ -8,7 +8,7 @@ import {
   LayoutDashboard, ShoppingBag, Car, HardHat, MessageSquare,
   Users, DollarSign, Package, TrendingUp, LogOut, Home,
   Plus, Edit, Trash2, Eye, Search, Filter, X, Upload, Loader2, Menu,
-  Settings, ChevronDown, ChevronUp, MapPin, AlertTriangle
+  Settings, ChevronDown, ChevronUp, MapPin, AlertTriangle, Archive
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { Product, Vehicle, Material, Order, RentalBooking, Inquiry } from "@/types"
@@ -16,7 +16,8 @@ import {
   createProduct, updateProduct, deleteProduct,
   createVehicle, updateVehicle, deleteVehicle,
   createMaterial, updateMaterial, deleteMaterial,
-  updateOrderStatus, updateBookingStatus, updateInquiryStatus
+  updateOrderStatus, updateBookingStatus, updateInquiryStatus,
+  markInquiryAsRead, archiveInquiry, unarchiveInquiry, deleteInquiry
 } from "@/lib/actions/admin"
 import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries, getUserCount } from "@/lib/actions/products"
 import { getStockSettings, updateStockSettings, getDeliveryZones, createDeliveryZone, updateDeliveryZone, deleteDeliveryZone } from "@/lib/actions/settings"
@@ -39,6 +40,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
   const [bookings, setBookings] = useState<RentalBooking[]>([])
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [selectedMessageFilter, setSelectedMessageFilter] = useState<"all" | "unread" | "archived">("all")
   const [stockSettings, setStockSettings] = useState<StockSettings | null>(null)
   const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>([])
   const [expandedSettings, setExpandedSettings] = useState<string | null>(null)
@@ -105,16 +107,17 @@ export default function AdminDashboard() {
     { label: "Fashion Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
     { label: "Construction Materials", value: stats.materials.toString(), icon: HardHat, color: "bg-orange-500" },
     { label: "Car Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
-    { label: "Construction Inquiries", value: stats.inquiries.toString(), icon: MessageSquare, color: "bg-rose-500" },
+    { label: "Unread Messages", value: inquiries.filter(i => !i.is_read && !i.is_archived).length.toString(), icon: MessageSquare, color: "bg-rose-500" },
     { label: "Registered Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
   ]
 
-  const handleDelete = async (id: string, type: "product" | "vehicle" | "material") => {
+  const handleDelete = async (id: string, type: "product" | "vehicle" | "material" | "inquiry") => {
     if (!confirm("Are you sure you want to delete this item?")) return
     try {
       if (type === "product") await deleteProduct(id)
       else if (type === "vehicle") await deleteVehicle(id)
       else if (type === "material") await deleteMaterial(id)
+      else if (type === "inquiry") await deleteInquiry(id)
       await loadData()
     } catch (error) {
       alert("Error deleting item: " + (error as Error).message)
@@ -129,6 +132,33 @@ export default function AdminDashboard() {
       await loadData()
     } catch (error) {
       alert("Error updating status: " + (error as Error).message)
+    }
+  }
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markInquiryAsRead(id)
+      await loadData()
+    } catch (error) {
+      alert("Error marking as read: " + (error as Error).message)
+    }
+  }
+
+  const handleArchive = async (id: string) => {
+    try {
+      await archiveInquiry(id)
+      await loadData()
+    } catch (error) {
+      alert("Error archiving message: " + (error as Error).message)
+    }
+  }
+
+  const handleUnarchive = async (id: string) => {
+    try {
+      await unarchiveInquiry(id)
+      await loadData()
+    } catch (error) {
+      alert("Error unarchiving message: " + (error as Error).message)
     }
   }
 
@@ -151,7 +181,7 @@ export default function AdminDashboard() {
     { id: "materials", label: "Construction Materials", icon: HardHat },
     { id: "orders", label: "Orders", icon: ShoppingBag },
     { id: "bookings", label: "Car Bookings", icon: Car },
-    { id: "inquiries", label: "Construction Inquiries", icon: MessageSquare },
+    { id: "messages", label: "Messages", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -461,59 +491,128 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* INQUIRIES TAB */}
-            {activeTab === "inquiries" && (
+            {/* MESSAGES TAB */}
+            {activeTab === "messages" && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Construction Inquiries</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Messages</h2>
                 </div>
-                {inquiries.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No inquiries yet. Messages from the contact form will appear here.</p>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Name</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Phone</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Type</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden lg:table-cell">Message</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {inquiries.map((i) => (
-                            <tr key={i.id} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{i.name}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{i.phone}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell capitalize">{i.type}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden lg:table-cell max-w-xs truncate">{i.message}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3">
-                                <select
-                                  value={i.status}
-                                  onChange={(e) => handleStatusUpdate(i.id, e.target.value, "inquiry")}
-                                  className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
-                                >
-                                  <option value="new">New</option>
-                                  <option value="in_progress">In Progress</option>
-                                  <option value="resolved">Resolved</option>
-                                </select>
-                              </td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(i.created_at).toLocaleDateString()}</td>
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    onClick={() => setSelectedMessageFilter("all")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMessageFilter === "all" ? "bg-ksk-gold text-ksk-dark" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    All Messages
+                  </button>
+                  <button
+                    onClick={() => setSelectedMessageFilter("unread")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMessageFilter === "unread" ? "bg-ksk-gold text-ksk-dark" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    Unread ({inquiries.filter(i => !i.is_read && !i.is_archived).length})
+                  </button>
+                  <button
+                    onClick={() => setSelectedMessageFilter("archived")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMessageFilter === "archived" ? "bg-ksk-gold text-ksk-dark" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    Archived
+                  </button>
+                </div>
+                {(() => {
+                  const filteredInquiries = inquiries.filter(i => {
+                    if (selectedMessageFilter === "unread") return !i.is_read && !i.is_archived
+                    if (selectedMessageFilter === "archived") return i.is_archived
+                    return !i.is_archived
+                  })
+                  
+                  if (filteredInquiries.length === 0) {
+                    return (
+                      <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
+                        <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No messages found. Messages from the contact form will appear here.</p>
+                      </div>
+                    )
+                  }
+                  
+                  return (
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Name</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Phone</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Type</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden lg:table-cell">Message</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
+                              <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {filteredInquiries.map((i) => (
+                              <tr key={i.id} className={`hover:bg-gray-50 ${!i.is_read ? "bg-blue-50/50" : ""}`}>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">
+                                  <div className="flex items-center gap-2">
+                                    {i.name}
+                                    {!i.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full"></span>}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{i.phone}</td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell capitalize">
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                    i.type === 'general' ? 'bg-gray-100 text-gray-700' :
+                                    i.type === 'construction' ? 'bg-orange-100 text-orange-700' :
+                                    i.type === 'rental' ? 'bg-purple-100 text-purple-700' :
+                                    i.type === 'order' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {i.type}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden lg:table-cell max-w-xs truncate">{i.message}</td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3">
+                                  <select
+                                    value={i.status}
+                                    onChange={(e) => handleStatusUpdate(i.id, e.target.value, "inquiry")}
+                                    className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
+                                  >
+                                    <option value="new">New</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="resolved">Resolved</option>
+                                  </select>
+                                </td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(i.created_at).toLocaleDateString()}</td>
+                                <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
+                                  <div className="flex items-center justify-end gap-1 lg:gap-2">
+                                    {!i.is_read && (
+                                      <button onClick={() => handleMarkAsRead(i.id)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors" title="Mark as read">
+                                        <Eye className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                    {!i.is_archived ? (
+                                      <button onClick={() => handleArchive(i.id)} className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors" title="Archive">
+                                        <Archive className="w-4 h-4" />
+                                      </button>
+                                    ) : (
+                                      <button onClick={() => handleUnarchive(i.id)} className="p-1.5 text-gray-400 hover:text-green-500 transition-colors" title="Unarchive">
+                                        <Archive className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                    <button onClick={() => handleDelete(i.id, "inquiry")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors" title="Delete">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             )}
 
