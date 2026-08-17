@@ -7,7 +7,8 @@ import { ImagePicker } from "@/components/admin/ImagePicker"
 import {
   LayoutDashboard, ShoppingBag, Car, HardHat, MessageSquare,
   Users, DollarSign, Package, TrendingUp, LogOut, Home,
-  Plus, Edit, Trash2, Eye, Search, Filter, X, Upload, Loader2, Menu
+  Plus, Edit, Trash2, Eye, Search, Filter, X, Upload, Loader2, Menu,
+  Settings, ChevronDown, ChevronUp, MapPin, AlertTriangle
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { Product, Vehicle, Material, Order, RentalBooking, Inquiry } from "@/types"
@@ -17,7 +18,9 @@ import {
   createMaterial, updateMaterial, deleteMaterial,
   updateOrderStatus, updateBookingStatus, updateInquiryStatus
 } from "@/lib/actions/admin"
-import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries } from "@/lib/actions/products"
+import { getProducts, getVehicles, getMaterials, getOrders, getRentalBookings, getInquiries, getUserCount } from "@/lib/actions/products"
+import { getStockSettings, updateStockSettings, getDeliveryZones, createDeliveryZone, updateDeliveryZone, deleteDeliveryZone } from "@/lib/actions/settings"
+import type { StockSettings, DeliveryZone } from "@/types"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -29,13 +32,16 @@ export default function AdminDashboard() {
   const [uploading, setUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, bookings: 0, inquiries: 0, users: 0 })
+  const [stats, setStats] = useState({ orders: 0, revenue: 0, products: 0, materials: 0, bookings: 0, inquiries: 0, users: 0 })
   const [products, setProducts] = useState<Product[]>([])
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [materials, setMaterials] = useState<Material[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [bookings, setBookings] = useState<RentalBooking[]>([])
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [stockSettings, setStockSettings] = useState<StockSettings | null>(null)
+  const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>([])
+  const [expandedSettings, setExpandedSettings] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -44,13 +50,16 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [productsData, vehiclesData, materialsData, ordersData, bookingsData, inquiriesData] = await Promise.all([
+      const [productsData, vehiclesData, materialsData, ordersData, bookingsData, inquiriesData, userCount, stockSettingsData, deliveryZonesData] = await Promise.all([
         getProducts(),
         getVehicles(),
         getMaterials(),
         getOrders(),
         getRentalBookings(),
-        getInquiries()
+        getInquiries(),
+        getUserCount(),
+        getStockSettings(),
+        getDeliveryZones()
       ])
       setProducts(productsData)
       setVehicles(vehiclesData)
@@ -58,13 +67,18 @@ export default function AdminDashboard() {
       setOrders(ordersData)
       setBookings(bookingsData)
       setInquiries(inquiriesData)
+      setStockSettings(stockSettingsData)
+      setDeliveryZones(deliveryZonesData)
       setStats({
         orders: ordersData.length,
-        revenue: ordersData.reduce((sum, o) => sum + o.total, 0),
+        revenue: ordersData
+          .filter(o => o.status !== 'cancelled')
+          .reduce((sum, o) => sum + (o.total || 0), 0),
         products: productsData.length,
+        materials: materialsData.length,
         bookings: bookingsData.length,
         inquiries: inquiriesData.length,
-        users: 0
+        users: userCount
       })
     } catch (error) {
       console.error("Error loading data:", error)
@@ -89,9 +103,10 @@ export default function AdminDashboard() {
     { label: "Total Orders", value: stats.orders.toString(), icon: ShoppingBag, color: "bg-blue-500" },
     { label: "Total Revenue", value: `GH₵ ${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "bg-green-500" },
     { label: "Fashion Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
+    { label: "Construction Materials", value: stats.materials.toString(), icon: HardHat, color: "bg-orange-500" },
     { label: "Car Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
     { label: "Construction Inquiries", value: stats.inquiries.toString(), icon: MessageSquare, color: "bg-rose-500" },
-    { label: "New Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
+    { label: "Registered Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
   ]
 
   const handleDelete = async (id: string, type: "product" | "vehicle" | "material") => {
@@ -136,6 +151,7 @@ export default function AdminDashboard() {
     { id: "orders", label: "Orders", icon: ShoppingBag },
     { id: "bookings", label: "Car Bookings", icon: Car },
     { id: "inquiries", label: "Construction Inquiries", icon: MessageSquare },
+    { id: "settings", label: "Settings", icon: Settings },
   ]
 
   return (
@@ -543,6 +559,199 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+
+            {/* SETTINGS TAB */}
+            {activeTab === "settings" && (
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark mb-4 lg:mb-6">Settings</h2>
+                
+                {/* Stock Status Settings */}
+                <div className="bg-white rounded-xl border border-gray-100 mb-4 lg:mb-6">
+                  <button 
+                    onClick={() => setExpandedSettings(expandedSettings === "stock" ? null : "stock")}
+                    className="w-full px-4 py-3 lg:px-6 lg:py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="w-5 h-5 text-ksk-gold" />
+                      <span className="font-semibold text-ksk-dark text-sm lg:text-base">Stock Status Settings</span>
+                    </div>
+                    {expandedSettings === "stock" ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                  </button>
+                  
+                  {expandedSettings === "stock" && (
+                    <div className="px-4 py-4 lg:px-6 lg:py-6 border-t border-gray-100">
+                      <form action={async (formData) => {
+                        try {
+                          await updateStockSettings(formData)
+                          await loadData()
+                          alert("Stock settings updated successfully!")
+                        } catch (error) {
+                          alert("Error updating stock settings: " + (error as Error).message)
+                        }
+                      }} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Low Stock Threshold</label>
+                            <input 
+                              name="low_stock_threshold" 
+                              type="number" 
+                              defaultValue={stockSettings?.low_stock_threshold || 10}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                              placeholder="e.g., 10"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Stock below this shows "Low Stock"</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Limited Stock Threshold</label>
+                            <input 
+                              name="limited_stock_threshold" 
+                              type="number" 
+                              defaultValue={stockSettings?.limited_stock_threshold || 20}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                              placeholder="e.g., 20"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Stock below this shows "Limited"</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Low Stock Label</label>
+                            <input 
+                              name="label_low_stock" 
+                              type="text" 
+                              defaultValue={stockSettings?.custom_labels?.low_stock || "Low Stock"}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Limited Stock Label</label>
+                            <input 
+                              name="label_limited_stock" 
+                              type="text" 
+                              defaultValue={stockSettings?.custom_labels?.limited_stock || "Limited"}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        <button type="submit" className="px-4 py-2 bg-ksk-gold text-ksk-dark font-semibold rounded-lg hover:bg-amber-400 transition-colors">
+                          Save Stock Settings
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+
+                {/* Delivery Zones Settings */}
+                <div className="bg-white rounded-xl border border-gray-100">
+                  <button 
+                    onClick={() => setExpandedSettings(expandedSettings === "delivery" ? null : "delivery")}
+                    className="w-full px-4 py-3 lg:px-6 lg:py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-ksk-gold" />
+                      <span className="font-semibold text-ksk-dark text-sm lg:text-base">Delivery Zones</span>
+                    </div>
+                    {expandedSettings === "delivery" ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                  </button>
+                  
+                  {expandedSettings === "delivery" && (
+                    <div className="px-4 py-4 lg:px-6 lg:py-6 border-t border-gray-100">
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-ksk-dark mb-3">Current Delivery Zones</h4>
+                        <div className="space-y-2">
+                          {deliveryZones.map((zone) => (
+                            <div key={zone.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <p className="font-medium text-ksk-dark">{zone.zone_name}</p>
+                                <p className="text-sm text-gray-600">GH₵ {zone.base_delivery_cost.toFixed(2)}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => {
+                                    const newCost = prompt(`Update delivery cost for ${zone.zone_name}:`, zone.base_delivery_cost.toString())
+                                    if (newCost) {
+                                      const formData = new FormData()
+                                      formData.append("zone_name", zone.zone_name)
+                                      formData.append("base_delivery_cost", newCost)
+                                      formData.append("display_order", zone.display_order.toString())
+                                      formData.append("is_active", zone.is_active ? "true" : "false")
+                                      updateDeliveryZone(zone.id, formData).then(() => loadData())
+                                    }
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    if (confirm(`Delete ${zone.zone_name}?`)) {
+                                      deleteDeliveryZone(zone.id).then(() => loadData())
+                                    }
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <form 
+                        action={async (formData) => {
+                          try {
+                            await createDeliveryZone(formData)
+                            await loadData()
+                            alert("Delivery zone added successfully!")
+                          } catch (error) {
+                            alert("Error adding delivery zone: " + (error as Error).message)
+                          }
+                        }}
+                        className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3"
+                      >
+                        <h4 className="font-semibold text-ksk-dark">Add New Delivery Zone</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Zone Name</label>
+                            <input 
+                              name="zone_name" 
+                              type="text" 
+                              required
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                              placeholder="e.g., Wa Central"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Cost (GH₵)</label>
+                            <input 
+                              name="base_delivery_cost" 
+                              type="number" 
+                              step="0.01"
+                              required
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                              placeholder="e.g., 15.00"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+                          <input 
+                            name="display_order" 
+                            type="number" 
+                            defaultValue={deliveryZones.length + 1}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                          />
+                        </div>
+                        <button type="submit" className="px-4 py-2 bg-ksk-gold text-ksk-dark font-semibold rounded-lg hover:bg-amber-400 transition-colors">
+                          Add Delivery Zone
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -627,6 +836,46 @@ export default function AdminDashboard() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Colors (comma-separated)</label>
                     <input name="colors" defaultValue={editingItem?.colors?.join(", ") || ""} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
+                  </div>
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700">Display in Cart & Checkout:</p>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_dimensions" defaultChecked={editingItem?.show_dimensions ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Dimensions (L/W)</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_sizes" defaultChecked={editingItem?.show_sizes ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Sizes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_colors" defaultChecked={editingItem?.show_colors ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Colors</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700">Delivery Settings:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Cost Override (GH₵)</label>
+                        <input 
+                          name="delivery_cost_override" 
+                          type="number" 
+                          step="0.01" 
+                          defaultValue={editingItem?.delivery_cost_override ?? ""} 
+                          placeholder="Leave empty for zone default"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Overrides zone-based cost if set</p>
+                      </div>
+                      <div className="flex items-center gap-2 pt-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="include_delivery_in_summary" defaultChecked={editingItem?.include_delivery_in_summary ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                          <span className="text-sm text-gray-700">Include delivery in order summary</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Product images</label>

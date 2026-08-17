@@ -1,41 +1,90 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Menu, X, ShoppingCart, Phone, LogIn, LogOut, User } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { useState, useEffect, useTransition } from "react"
+import { Menu, X, ShoppingCart, Phone, LogIn, LogOut, User, Loader2 } from "lucide-react"
 import { useCart } from "@/context/CartContext"
 import { createClient } from "@/lib/supabase/client"
+import { signOut } from "@/lib/actions/auth"
 
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [user, setUser] = useState<{ email: string } | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [isLoggingOut, startLogoutTransition] = useTransition()
   const { totalItems } = useCart()
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+    let mounted = true
+    const supabase = createClient()
 
-      if (session) {
+    const checkAdmin = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!mounted) return
+
+        if (session?.user) {
+          setUser({ email: session.user.email ?? "" })
+          try {
+            const { data: admin } = await supabase.rpc("is_admin")
+            setIsAdmin(admin === true)
+          } catch (rpcErr: any) {
+            console.warn("is_admin RPC failed:", rpcErr?.message ?? rpcErr)
+            setIsAdmin(false)
+          }
+        } else {
+          setUser(null)
+          setIsAdmin(false)
+        }
+      } catch (err: any) {
+        console.warn("Auth session check failed:", err?.message ?? err)
+        setUser(null)
+        setIsAdmin(false)
+      } finally {
+        if (mounted) setAuthLoading(false)
+      }
+    }
+
+    checkAdmin()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setAuthLoading(true)
+      if (session?.user) {
         setUser({ email: session.user.email ?? "" })
-        const { data: admin, error } = await supabase.rpc("is_admin")
-        setIsAdmin(!error && admin === true)
+        ;(async () => {
+          try {
+            const { data: admin } = await supabase.rpc("is_admin")
+            setIsAdmin(admin === true)
+          } catch { setIsAdmin(false) }
+          setAuthLoading(false)
+        })()
       } else {
         setUser(null)
         setIsAdmin(false)
+        setAuthLoading(false)
       }
-    }
-    checkAdmin()
-
-    const { data: { subscription } } = createClient().auth.onAuthStateChange(() => {
-      checkAdmin()
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
+
+  const handleLogout = () => {
+    startLogoutTransition(async () => {
+      try {
+        await signOut()
+      } catch (err: any) {
+        console.error("Logout failed:", err?.message ?? err)
+      }
+    })
+  }
 
   if (pathname?.startsWith("/admin")) {
     return null
@@ -89,16 +138,27 @@ export function Header() {
               )}
             </Link>
 
-            {isAdmin && (
+            {!authLoading && isAdmin && (
               <Link href="/admin" className="hidden sm:block px-4 py-1.5 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md hover:bg-amber-400 transition-colors">
                 Admin
               </Link>
             )}
 
-            {user ? (
-              <Link href="/login" className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors">
-                <LogOut className="w-4 h-4" />Logout
-              </Link>
+            {authLoading ? (
+              <button disabled className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-700 text-gray-500 text-sm rounded-md cursor-not-allowed" aria-label="Checking auth">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="max-w-[100px] truncate">...</span>
+              </button>
+            ) : user ? (
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                title={`Signed in as ${user.email}`}
+              >
+                {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+                {isLoggingOut ? "Signing out" : "Logout"}
+              </button>
             ) : (
               <Link href="/login" className="hidden sm:flex items-center gap-1 px-3 py-1.5 border border-gray-600 text-gray-300 text-sm rounded-md hover:bg-white/10 transition-colors">
                 <LogIn className="w-4 h-4" />Login
@@ -119,11 +179,34 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-ksk-gold hover:bg-gray-800 rounded-md transition-colors text-sm font-medium">
-                {user ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-                {user ? "Logout" : "Login"}
-              </Link>
-              {isAdmin && (
+              {authLoading ? (
+                <div className="flex items-center gap-2 px-3 py-2 text-gray-500 rounded-md text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />Checking...
+                </div>
+              ) : user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-400">
+                    <User className="w-3.5 h-3.5" />
+                    <span className="truncate">{user.email}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      handleLogout()
+                    }}
+                    disabled={isLoggingOut}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-ksk-gold hover:bg-gray-800 rounded-md transition-colors text-sm font-medium disabled:opacity-60"
+                  >
+                    {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+                    {isLoggingOut ? "Signing out..." : "Logout"}
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-ksk-gold hover:bg-gray-800 rounded-md transition-colors text-sm font-medium">
+                  <LogIn className="w-4 h-4" />Login
+                </Link>
+              )}
+              {!authLoading && isAdmin && (
                 <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="mt-2 px-3 py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-md text-center">
                   Admin Dashboard
                 </Link>

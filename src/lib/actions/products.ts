@@ -92,3 +92,26 @@ export async function getInquiries(): Promise<Inquiry[]> {
   if (error) throw new Error(error.message)
   return data || []
 }
+
+// ─── USERS ───────────────────────────────────────────────────
+export async function getUserCount(): Promise<number> {
+  const supabase = await createClient()
+  const { data, error, count } = await supabase.from("profiles").select("*", { count: "exact", head: true })
+  if (error) throw new Error(error.message)
+  return count || 0
+}
+
+// ─── STOCK SETTINGS ─────────────────────────────────────────
+export async function getStockSettingsForDisplay() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from("stock_settings").select("*").single()
+  if (error) {
+    // Return defaults if settings don't exist
+    return {
+      low_stock_threshold: 10,
+      limited_stock_threshold: 20,
+      custom_labels: { low_stock: "Low Stock", limited_stock: "Limited" }
+    }
+  }
+  return data
+}

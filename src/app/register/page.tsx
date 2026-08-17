@@ -14,18 +14,27 @@ export default function RegisterPage() {
     setLoading(true)
     setError("")
 
-    const password = formData.get("password") as string
-    const confirmPassword = formData.get("confirmPassword") as string
+    try {
+      const password = formData.get("password") as string
+      const confirmPassword = formData.get("confirmPassword") as string
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match!")
-      setLoading(false)
-      return
-    }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match!")
+        setLoading(false)
+        return
+      }
 
-    const result = await signUp(formData)
-    if (result?.error) {
-      setError(result.error)
+      console.log("Submitting registration form...")
+      const result = await signUp(formData)
+      console.log("Registration result:", result)
+      
+      if (result?.error) {
+        setError(result.error)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error("Registration form error:", error)
+      setError("An unexpected error occurred. Please try again.")
       setLoading(false)
     }
   }

@@ -19,6 +19,7 @@ export async function createProduct(formData: FormData) {
   const supabase = await getAdminClient()
   const lengthVal = formData.get("length_cm") as string
   const widthVal = formData.get("width_cm") as string
+  const deliveryCostVal = formData.get("delivery_cost_override") as string
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -30,6 +31,11 @@ export async function createProduct(formData: FormData) {
     stock: parseInt(formData.get("stock") as string),
     length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
     width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
+    show_dimensions: formData.get("show_dimensions") === "on",
+    show_sizes: formData.get("show_sizes") === "on",
+    show_colors: formData.get("show_colors") === "on",
+    delivery_cost_override: deliveryCostVal && deliveryCostVal !== "" ? parseFloat(deliveryCostVal) : null,
+    include_delivery_in_summary: formData.get("include_delivery_in_summary") === "on",
   }
   const { error } = await supabase.from("products").insert(product)
   if (error) throw new Error(error.message)
@@ -41,6 +47,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const supabase = await getAdminClient()
   const lengthVal = formData.get("length_cm") as string
   const widthVal = formData.get("width_cm") as string
+  const deliveryCostVal = formData.get("delivery_cost_override") as string
   const product = {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -52,6 +59,11 @@ export async function updateProduct(id: string, formData: FormData) {
     stock: parseInt(formData.get("stock") as string),
     length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
     width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
+    show_dimensions: formData.get("show_dimensions") === "on",
+    show_sizes: formData.get("show_sizes") === "on",
+    show_colors: formData.get("show_colors") === "on",
+    delivery_cost_override: deliveryCostVal && deliveryCostVal !== "" ? parseFloat(deliveryCostVal) : null,
+    include_delivery_in_summary: formData.get("include_delivery_in_summary") === "on",
   }
   const { error } = await supabase.from("products").update(product).eq("id", id)
   if (error) throw new Error(error.message)
