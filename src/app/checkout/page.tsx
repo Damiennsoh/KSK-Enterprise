@@ -152,7 +152,14 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-ksk-dark truncate">{item.name}</p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      <div className="text-xs text-gray-500">
+                        <p>Qty: {item.quantity}</p>
+                        {item.showDimensions && item.lengthCm && item.widthCm && (
+                          <p>{item.lengthCm}cm × {item.widthCm}cm</p>
+                        )}
+                        {item.showSizes && item.size && <p>Size: {item.size}</p>}
+                        {item.showColors && item.color && <p>Color: {item.color}</p>}
+                      </div>
                     </div>
                     <p className="text-sm font-semibold text-ksk-brown">GH₵ {(item.price * item.quantity).toFixed(2)}</p>
                   </div>

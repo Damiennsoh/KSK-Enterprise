@@ -30,6 +30,9 @@ export async function createProduct(formData: FormData) {
     stock: parseInt(formData.get("stock") as string),
     length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
     width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
+    show_dimensions: formData.get("show_dimensions") === "on",
+    show_sizes: formData.get("show_sizes") === "on",
+    show_colors: formData.get("show_colors") === "on",
   }
   const { error } = await supabase.from("products").insert(product)
   if (error) throw new Error(error.message)
@@ -52,6 +55,9 @@ export async function updateProduct(id: string, formData: FormData) {
     stock: parseInt(formData.get("stock") as string),
     length_cm: lengthVal && lengthVal !== "" ? parseFloat(lengthVal) : null,
     width_cm: widthVal && widthVal !== "" ? parseFloat(widthVal) : null,
+    show_dimensions: formData.get("show_dimensions") === "on",
+    show_sizes: formData.get("show_sizes") === "on",
+    show_colors: formData.get("show_colors") === "on",
   }
   const { error } = await supabase.from("products").update(product).eq("id", id)
   if (error) throw new Error(error.message)

@@ -44,8 +44,14 @@ export default function CartPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-ksk-dark">{item.name}</h3>
-                        {item.size && <p className="text-xs text-gray-500">Size: {item.size} {item.color && `| Color: ${item.color}`}</p>}
-                        {item.unit && <p className="text-xs text-gray-500">Unit: {item.unit}</p>}
+                        <div className="text-xs text-gray-500 mt-1">
+                          {item.showDimensions && item.lengthCm && item.widthCm && (
+                            <p>Dimensions: {item.lengthCm}cm × {item.widthCm}cm</p>
+                          )}
+                          {item.showSizes && item.size && <p>Size: {item.size}</p>}
+                          {item.showColors && item.color && <p>Color: {item.color}</p>}
+                          {item.unit && <p>Unit: {item.unit}</p>}
+                        </div>
                       </div>
                       <button onClick={() => removeItem(item.id)} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors">
                         <Trash2 className="w-4 h-4" />

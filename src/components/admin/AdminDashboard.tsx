@@ -633,6 +633,23 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Colors (comma-separated)</label>
                     <input name="colors" defaultValue={editingItem?.colors?.join(", ") || ""} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent" />
                   </div>
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700">Display in Cart & Checkout:</p>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_dimensions" defaultChecked={editingItem?.show_dimensions ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Dimensions (L/W)</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_sizes" defaultChecked={editingItem?.show_sizes ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Sizes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="show_colors" defaultChecked={editingItem?.show_colors ?? true} className="w-4 h-4 rounded border-gray-300 text-ksk-gold focus:ring-ksk-gold" />
+                        <span className="text-sm text-gray-700">Show Colors</span>
+                      </label>
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Product images</label>
                     <ImagePicker name="images" bucket="products" value={editingItem?.images || []} />

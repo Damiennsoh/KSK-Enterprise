@@ -57,6 +57,11 @@ export default function ProductDetailPage() {
       size: selectedSize,
       color: selectedColor,
       type: "product",
+      showDimensions: product.show_dimensions,
+      showSizes: product.show_sizes,
+      showColors: product.show_colors,
+      lengthCm: product.length_cm,
+      widthCm: product.width_cm,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

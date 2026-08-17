@@ -16,6 +16,9 @@ export interface Product {
   stock: number
   length_cm: number | null
   width_cm: number | null
+  show_dimensions: boolean
+  show_sizes: boolean
+  show_colors: boolean
   created_at: string
 }
 

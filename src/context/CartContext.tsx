@@ -12,6 +12,11 @@ export interface CartItem {
   color?: string
   unit?: string
   type: "product" | "material"
+  showDimensions?: boolean
+  showSizes?: boolean
+  showColors?: boolean
+  lengthCm?: number | null
+  widthCm?: number | null
 }
 
 interface CartContextType {
