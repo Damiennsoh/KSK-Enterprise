@@ -107,7 +107,7 @@ export default function AdminDashboard() {
     { label: "Fashion Products", value: stats.products.toString(), icon: Package, color: "bg-amber-500" },
     { label: "Construction Materials", value: stats.materials.toString(), icon: HardHat, color: "bg-orange-500" },
     { label: "Car Bookings", value: stats.bookings.toString(), icon: Car, color: "bg-purple-500" },
-    { label: "Unread Messages", value: inquiries.filter(i => !i.is_read && !i.is_archived).length.toString(), icon: MessageSquare, color: "bg-rose-500" },
+    { label: "Unread Messages", value: inquiries.filter(i => (!i.is_read || i.is_read === false) && (!i.is_archived || i.is_archived === false)).length.toString(), icon: MessageSquare, color: "bg-rose-500" },
     { label: "Registered Users", value: stats.users.toString(), icon: Users, color: "bg-cyan-500" },
   ]
 
@@ -508,7 +508,7 @@ export default function AdminDashboard() {
                     onClick={() => setSelectedMessageFilter("unread")}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMessageFilter === "unread" ? "bg-ksk-gold text-ksk-dark" : "bg-white text-gray-600 hover:bg-gray-100"}`}
                   >
-                    Unread ({inquiries.filter(i => !i.is_read && !i.is_archived).length})
+                    Unread ({inquiries.filter(i => (!i.is_read || i.is_read === false) && (!i.is_archived || i.is_archived === false)).length})
                   </button>
                   <button
                     onClick={() => setSelectedMessageFilter("archived")}
@@ -519,9 +519,9 @@ export default function AdminDashboard() {
                 </div>
                 {(() => {
                   const filteredInquiries = inquiries.filter(i => {
-                    if (selectedMessageFilter === "unread") return !i.is_read && !i.is_archived
-                    if (selectedMessageFilter === "archived") return i.is_archived
-                    return !i.is_archived
+                    if (selectedMessageFilter === "unread") return (!i.is_read || i.is_read === false) && (!i.is_archived || i.is_archived === false)
+                    if (selectedMessageFilter === "archived") return i.is_archived === true
+                    return !i.is_archived || i.is_archived === false
                   })
                   
                   if (filteredInquiries.length === 0) {
@@ -551,12 +551,12 @@ export default function AdminDashboard() {
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {filteredInquiries.map((i) => (
-                              <tr key={i.id} className={`hover:bg-gray-50 ${!i.is_read ? "bg-blue-50/50" : ""}`}>
+                              <tr key={i.id} className={`hover:bg-gray-50 ${(!i.is_read || i.is_read === false) ? "bg-blue-50/50" : ""}`}>
                                 <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
                                 <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">
                                   <div className="flex items-center gap-2">
                                     {i.name}
-                                    {!i.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full"></span>}
+                                    {(!i.is_read || i.is_read === false) && <span className="w-2 h-2 bg-blue-500 rounded-full"></span>}
                                   </div>
                                 </td>
                                 <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{i.phone}</td>
