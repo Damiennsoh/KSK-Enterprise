@@ -148,6 +148,7 @@ export default function AdminDashboard() {
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "carousel", label: "Carousel", icon: HardHat },
     { id: "products", label: "Fashion Products", icon: Package },
+    { id: "materials", label: "Construction Materials", icon: HardHat },
     { id: "orders", label: "Orders", icon: ShoppingBag },
     { id: "bookings", label: "Car Bookings", icon: Car },
     { id: "inquiries", label: "Construction Inquiries", icon: MessageSquare },
@@ -465,6 +466,62 @@ export default function AdminDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Construction Inquiries</h2>
+                </div>
+                {inquiries.length === 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
+                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No inquiries yet. Messages from the contact form will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Name</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Phone</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Type</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden lg:table-cell">Message</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
+                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {inquiries.map((i) => (
+                            <tr key={i.id} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{i.name}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{i.phone}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell capitalize">{i.type}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden lg:table-cell max-w-xs truncate">{i.message}</td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3">
+                                <select
+                                  value={i.status}
+                                  onChange={(e) => handleStatusUpdate(i.id, e.target.value, "inquiry")}
+                                  className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
+                                >
+                                  <option value="new">New</option>
+                                  <option value="in_progress">In Progress</option>
+                                  <option value="resolved">Resolved</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(i.created_at).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MATERIALS TAB */}
+            {activeTab === "materials" && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-ksk-dark">Construction Materials</h2>
                   <button onClick={() => openModal("material")} className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-ksk-gold text-ksk-dark text-sm font-semibold rounded-lg hover:bg-amber-400 transition-colors">
                     <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Material</span>
                   </button>
@@ -474,87 +531,44 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">ID</th>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Name</th>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Type</th>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden lg:table-cell">Message</th>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Status</th>
-                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Date</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Material</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Category</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Price</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Unit</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Stock</th>
+                          <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {inquiries.map((i) => (
-                          <tr key={i.id} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm truncate">{i.id.slice(0, 8)}...</td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{i.name}</td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell capitalize">{i.type}</td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden lg:table-cell max-w-xs truncate">{i.message}</td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3">
-                              <select
-                                value={i.status}
-                                onChange={(e) => handleStatusUpdate(i.id, e.target.value, "inquiry")}
-                                className={`px-2 py-1 rounded text-xs font-medium border-0 ${statusColors[i.status]}`}
-                              >
-                                <option value="new">New</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                              </select>
+                        {materials.map((m) => (
+                          <tr key={m.id} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{m.name}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{m.category}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {m.price.toFixed(2)}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.unit}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-sm hidden md:table-cell">
+                              <div className="flex items-center gap-2">
+                                <span className={m.stock < 20 ? "text-ksk-red font-bold" : m.stock < 100 ? "text-amber-600 font-semibold" : "text-gray-600"}>
+                                  {m.stock}
+                                </span>
+                                {m.stock < 20 && (
+                                  <span className="px-2 py-0.5 bg-ksk-red/10 text-ksk-red text-xs font-semibold rounded-full">Low Stock</span>
+                                )}
+                                {m.stock >= 20 && m.stock < 100 && (
+                                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Limited</span>
+                                )}
+                              </div>
                             </td>
-                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-500 text-xs lg:text-sm hidden md:table-cell">{new Date(i.created_at).toLocaleDateString()}</td>
+                            <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
+                              <div className="flex items-center justify-end gap-1 lg:gap-2">
+                                <button onClick={() => openModal("material", m)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
+                                <button onClick={() => handleDelete(m.id, "material")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-
-                {/* Materials List */}
-                <div className="mt-6 lg:mt-8">
-                  <h3 className="text-lg lg:text-xl font-bold text-ksk-dark mb-3 lg:mb-4">Materials</h3>
-                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Material</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden sm:table-cell">Category</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm">Price</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Unit</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-left font-semibold text-gray-600 text-xs lg:text-sm hidden md:table-cell">Stock</th>
-                            <th className="px-3 py-2 lg:px-4 lg:py-3 text-right font-semibold text-gray-600 text-xs lg:text-sm">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {materials.map((m) => (
-                            <tr key={m.id} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 font-medium text-ksk-dark text-sm">{m.name}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden sm:table-cell">{m.category}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-ksk-brown font-semibold text-sm">GH₵ {m.price.toFixed(2)}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-gray-600 text-sm hidden md:table-cell">{m.unit}</td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-sm hidden md:table-cell">
-                                <div className="flex items-center gap-2">
-                                  <span className={m.stock < 20 ? "text-ksk-red font-bold" : m.stock < 100 ? "text-amber-600 font-semibold" : "text-gray-600"}>
-                                    {m.stock}
-                                  </span>
-                                  {m.stock < 20 && (
-                                    <span className="px-2 py-0.5 bg-ksk-red/10 text-ksk-red text-xs font-semibold rounded-full">Low Stock</span>
-                                  )}
-                                  {m.stock >= 20 && m.stock < 100 && (
-                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Limited</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 lg:px-4 lg:py-3 text-right">
-                                <div className="flex items-center justify-end gap-1 lg:gap-2">
-                                  <button onClick={() => openModal("material", m)} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"><Edit className="w-4 h-4" /></button>
-                                  <button onClick={() => handleDelete(m.id, "material")} className="p-1.5 text-gray-400 hover:text-ksk-red transition-colors"><Trash2 className="w-4 h-4" /></button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
                   </div>
                 </div>
               </div>
