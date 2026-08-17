@@ -17,6 +17,8 @@ export interface CartItem {
   showColors?: boolean
   lengthCm?: number | null
   widthCm?: number | null
+  deliveryCostOverride?: number | null
+  includeDeliveryInSummary?: boolean
 }
 
 interface CartContextType {

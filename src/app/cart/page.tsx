@@ -1,13 +1,52 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
-import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-react"
+import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package, MapPin } from "lucide-react"
+import { getDeliveryZones } from "@/lib/actions/settings"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCart()
+  const [selectedZone, setSelectedZone] = useState<number | null>(null)
+  const [deliveryZones, setDeliveryZones] = useState<any[]>([])
+  const [loadingZones, setLoadingZones] = useState(true)
 
-  const deliveryFee = totalPrice > 500 ? 0 : 30
+  useEffect(() => {
+    loadDeliveryZones()
+  }, [])
+
+  const loadDeliveryZones = async () => {
+    try {
+      const zones = await getDeliveryZones()
+      setDeliveryZones(zones)
+      if (zones.length > 0) {
+        setSelectedZone(zones[0].id)
+      }
+    } catch (error) {
+      console.error("Failed to load delivery zones:", error)
+    } finally {
+      setLoadingZones(false)
+    }
+  }
+
+  const calculateDeliveryCost = () => {
+    if (!selectedZone) return 0
+    const zone = deliveryZones.find(z => z.id === selectedZone)
+    if (!zone) return 0
+
+    let totalDeliveryCost = 0
+    items.forEach(item => {
+      if (item.includeDeliveryInSummary !== false) {
+        // Use product override if set, otherwise use zone default
+        const cost = item.deliveryCostOverride || zone.base_delivery_cost
+        totalDeliveryCost += cost * item.quantity
+      }
+    })
+    return totalDeliveryCost
+  }
+
+  const deliveryFee = calculateDeliveryCost()
   const total = totalPrice + deliveryFee
 
   return (
@@ -77,10 +116,39 @@ export default function CartPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl p-6 border border-gray-100 sticky top-24">
                 <h3 className="text-lg font-bold text-ksk-dark mb-4">Order Summary</h3>
+                
+                {/* Delivery Zone Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Select Delivery Location
+                  </label>
+                  {loadingZones ? (
+                    <div className="text-sm text-gray-500">Loading delivery zones...</div>
+                  ) : (
+                    <select 
+                      value={selectedZone || ""} 
+                      onChange={(e) => setSelectedZone(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ksk-gold focus:border-transparent"
+                    >
+                      {deliveryZones.map(zone => (
+                        <option key={zone.id} value={zone.id}>
+                          {zone.zone_name} - GH₵{zone.base_delivery_cost.toFixed(2)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
                 <div className="space-y-3 text-sm mb-4">
                   <div className="flex justify-between"><span className="text-gray-600">Subtotal</span><span className="font-medium">GH₵ {totalPrice.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-600">Delivery</span><span className="font-medium">{deliveryFee === 0 ? "Free" : `GH₵ ${deliveryFee.toFixed(2)}`}</span></div>
-                  {deliveryFee > 0 && <p className="text-xs text-gray-400">Free delivery on orders over GH₵500</p>}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Delivery</span>
+                    <span className="font-medium">{deliveryFee === 0 ? "Free" : `GH₵ ${deliveryFee.toFixed(2)}`}</span>
+                  </div>
+                  {deliveryFee > 0 && (
+                    <p className="text-xs text-gray-400">Delivery cost based on selected location</p>
+                  )}
                 </div>
                 <div className="border-t border-gray-200 pt-4 mb-4">
                   <div className="flex justify-between font-bold text-lg text-ksk-dark"><span>Total</span><span>GH₵ {total.toFixed(2)}</span></div>

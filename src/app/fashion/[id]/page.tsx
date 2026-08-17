@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
 import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Loader2, AlertTriangle, Ruler } from "lucide-react"
-import { getProductById } from "@/lib/actions/products"
+import { getProductById, getStockSettingsForDisplay } from "@/lib/actions/products"
 import type { Product } from "@/types"
 
 export default function ProductDetailPage() {
@@ -21,6 +21,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [mainImage, setMainImage] = useState("")
   const [added, setAdded] = useState(false)
+  const [stockSettings, setStockSettings] = useState<any>(null)
 
   useEffect(() => {
     loadProduct()
@@ -30,12 +31,16 @@ export default function ProductDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await getProductById(productId)
+      const [data, settings] = await Promise.all([
+        getProductById(productId),
+        getStockSettingsForDisplay()
+      ])
       if (!data) {
         setError("Product not found")
         return
       }
       setProduct(data)
+      setStockSettings(settings)
       setMainImage(data.images[0] || "")
       setSelectedSize(data.sizes?.[0] || "")
       setSelectedColor(data.colors?.[0] || "")
@@ -62,6 +67,8 @@ export default function ProductDetailPage() {
       showColors: product.show_colors,
       lengthCm: product.length_cm,
       widthCm: product.width_cm,
+      deliveryCostOverride: product.delivery_cost_override,
+      includeDeliveryInSummary: product.include_delivery_in_summary,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -106,10 +113,13 @@ export default function ProductDetailPage() {
           <div>
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 mb-4">
               <img src={mainImage || "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800"} alt={product.name} className="w-full h-full object-cover" />
-              {product.stock < 10 && (
+              {stockSettings && product.stock < stockSettings.limited_stock_threshold && (
                 <div className="absolute top-4 left-4 px-3 py-1.5 bg-ksk-red text-white text-sm font-semibold rounded-lg flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4" />
-                  {product.stock === 0 ? "Out of Stock" : `Only ${product.stock} Left`}
+                  {product.stock === 0 ? "Out of Stock" : 
+                   product.stock < stockSettings.low_stock_threshold ? 
+                   `${stockSettings.custom_labels?.low_stock || "Low Stock"} (${product.stock} left)` :
+                   `${stockSettings.custom_labels?.limited_stock || "Limited"} (${product.stock} left)`}
                 </div>
               )}
             </div>

@@ -3,6 +3,26 @@
  * These mirror the Supabase database schema.
  */
 
+// ─── Stock Settings ───────────────────────────────────────────
+export interface StockSettings {
+  id: number
+  low_stock_threshold: number
+  limited_stock_threshold: number
+  custom_labels: Record<string, string>
+  updated_at: string
+}
+
+// ─── Delivery Zones ───────────────────────────────────────────
+export interface DeliveryZone {
+  id: number
+  zone_name: string
+  base_delivery_cost: number
+  is_active: boolean
+  display_order: number
+  created_at: string
+  updated_at: string
+}
+
 // ─── Product (Fashion / Smocks) ─────────────────────────────
 export interface Product {
   id: string
@@ -19,6 +39,8 @@ export interface Product {
   show_dimensions: boolean
   show_sizes: boolean
   show_colors: boolean
+  delivery_cost_override: number | null
+  include_delivery_in_summary: boolean
   created_at: string
 }
 
