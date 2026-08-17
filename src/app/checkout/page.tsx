@@ -96,16 +96,18 @@ export default function CheckoutPage() {
           { display_name: "Phone", variable_name: "phone", value: formData.phone },
           { display_name: "Address", variable_name: "address", value: formData.address },
         ]},
-        callback: async function (response: any) {
-          try {
-            const orderData = {
-              items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
-              total, customer_name: formData.customerName, phone: formData.phone, address: formData.address, payment_method: paymentMethod, paystack_reference: response.reference,
-            }
-            const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
-            if (res.ok) { clearCart(); setOrderComplete(true) }
-          } catch (err) { console.error(err) }
-          setLoading(false)
+        callback: function (response: any) {
+          (async () => {
+            try {
+              const orderData = {
+                items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
+                total, customer_name: formData.customerName, phone: formData.phone, address: formData.address, payment_method: paymentMethod, paystack_reference: response.reference,
+              }
+              const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
+              if (res.ok) { clearCart(); setOrderComplete(true) }
+            } catch (err) { console.error(err) }
+            setLoading(false)
+          })()
         },
         onClose: function () { setLoading(false) },
       })
