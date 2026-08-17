@@ -114,8 +114,10 @@ export interface Inquiry {
   phone: string
   email: string | null
   message: string
-  type: "labour" | "construction" | "general"
-  status: "new" | "in_progress" | "resolved"
+  type: "labour" | "construction" | "general" | "order" | "rental"
+  status: "new" | "in_progress" | "resolved" | "archived"
+  is_read: boolean
+  is_archived: boolean
   created_at: string
 }
 

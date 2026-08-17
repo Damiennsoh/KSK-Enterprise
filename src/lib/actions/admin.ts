@@ -191,6 +191,34 @@ export async function updateInquiryStatus(id: string, status: string) {
   revalidatePath("/admin")
 }
 
+export async function markInquiryAsRead(id: string) {
+  const supabase = await getAdminClient()
+  const { error } = await supabase.from("inquiries").update({ is_read: true }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin")
+}
+
+export async function archiveInquiry(id: string) {
+  const supabase = await getAdminClient()
+  const { error } = await supabase.from("inquiries").update({ is_archived: true, status: "archived" }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin")
+}
+
+export async function unarchiveInquiry(id: string) {
+  const supabase = await getAdminClient()
+  const { error } = await supabase.from("inquiries").update({ is_archived: false, status: "new" }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin")
+}
+
+export async function deleteInquiry(id: string) {
+  const supabase = await getAdminClient()
+  const { error } = await supabase.from("inquiries").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin")
+}
+
 // ─── HERO CAROUSEL CRUD ────────────────────────────────────
 export async function createHeroSlide(formData: FormData) {
   const supabase = await getAdminClient()
