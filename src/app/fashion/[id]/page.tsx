@@ -163,7 +163,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {product.sizes && product.sizes.length > 0 && (
+            {product.show_sizes && product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-ksk-dark mb-2">Size</label>
                 <div className="flex gap-2 flex-wrap">
@@ -176,7 +176,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {product.colors && product.colors.length > 0 && (
+            {product.show_colors && product.colors && product.colors.length > 0 && (
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-ksk-dark mb-2">Color</label>
                 <div className="flex gap-2 flex-wrap">
