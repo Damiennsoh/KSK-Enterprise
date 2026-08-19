@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, totalPrice, clearCart } = useCart()
   const [paymentMethod, setPaymentMethod] = useState<"momo" | "bank_card" | "cash">("momo")
-  const [formData, setFormData] = useState({ customerName: "", phone: "", address: "" })
+  const [formData, setFormData] = useState({ customerName: "", phone: "", email: "", address: "" })
   const [loading, setLoading] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [selectedZone, setSelectedZone] = useState<number | null>(null)
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
       try {
         const orderData = {
           items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
-          total, customer_name: formData.customerName, phone: formData.phone, address: formData.address, payment_method: paymentMethod,
+          total, customer_name: formData.customerName, phone: formData.phone, email: formData.email, address: formData.address, payment_method: paymentMethod,
         }
         const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
         if (res.ok) { clearCart(); setOrderComplete(true) }
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
 
     if (typeof window !== "undefined" && (window as any).PaystackPop) {
       const handler = (window as any).PaystackPop.setup({
-        key: PAYSTACK_KEY, email: `${formData.phone}@kskenterprise.com`, amount: total * 100, currency: "GHS", ref: "KSK-" + Date.now(),
+        key: PAYSTACK_KEY, email: formData.email || `${formData.phone}@kskenterprise.com`, amount: total * 100, currency: "GHS", ref: "KSK-" + Date.now(),
         metadata: { custom_fields: [
           { display_name: "Customer Name", variable_name: "customer_name", value: formData.customerName },
           { display_name: "Phone", variable_name: "phone", value: formData.phone },
@@ -101,7 +101,7 @@ export default function CheckoutPage() {
             try {
               const orderData = {
                 items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
-                total, customer_name: formData.customerName, phone: formData.phone, address: formData.address, payment_method: paymentMethod, paystack_reference: response.reference,
+                total, customer_name: formData.customerName, phone: formData.phone, email: formData.email, address: formData.address, payment_method: paymentMethod, paystack_reference: response.reference,
               }
               const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
               if (res.ok) { clearCart(); setOrderComplete(true) }
@@ -176,6 +176,10 @@ export default function CheckoutPage() {
                   <div>
                     <label className="block text-sm font-medium text-ksk-dark mb-1">Phone Number *</label>
                     <input type="tel" required pattern="0[0-9]{9}" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold" placeholder="024XXXXXXX" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-ksk-dark mb-1">Email (Optional)</label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold" placeholder="your@email.com" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-ksk-dark mb-1">Delivery Address *</label>
