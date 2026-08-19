@@ -12,6 +12,7 @@ export interface CartItem {
   color?: string
   unit?: string
   type: "product" | "material"
+  category?: "fashion" | "construction"
   showDimensions?: boolean
   showSizes?: boolean
   showColors?: boolean

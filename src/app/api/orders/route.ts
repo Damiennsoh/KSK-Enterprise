@@ -16,6 +16,65 @@ export async function POST(request: NextRequest) {
       body.authorization_code = verification.authorization_code || null
     }
 
+    // Deduct stock for each item
+    for (const item of body.items) {
+      if (item.category === 'fashion') {
+        // Get current stock
+        const { data: product, error: fetchError } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", item.product_id)
+          .single()
+        
+        if (fetchError || !product) {
+          console.error("Failed to fetch product stock:", item.product_id, fetchError)
+          return NextResponse.json({ error: "Failed to verify stock availability" }, { status: 500 })
+        }
+        
+        if (product.stock < item.quantity) {
+          return NextResponse.json({ error: "Insufficient stock for one or more items" }, { status: 400 })
+        }
+        
+        // Update stock
+        const { error: stockError } = await supabase
+          .from("products")
+          .update({ stock: product.stock - item.quantity })
+          .eq("id", item.product_id)
+        
+        if (stockError) {
+          console.error("Stock deduction error for product:", item.product_id, stockError)
+          return NextResponse.json({ error: "Failed to update stock" }, { status: 500 })
+        }
+      } else if (item.category === 'construction') {
+        // Get current stock
+        const { data: material, error: fetchError } = await supabase
+          .from("materials")
+          .select("stock")
+          .eq("id", item.product_id)
+          .single()
+        
+        if (fetchError || !material) {
+          console.error("Failed to fetch material stock:", item.product_id, fetchError)
+          return NextResponse.json({ error: "Failed to verify stock availability" }, { status: 500 })
+        }
+        
+        if (material.stock < item.quantity) {
+          return NextResponse.json({ error: "Insufficient stock for one or more items" }, { status: 400 })
+        }
+        
+        // Update stock
+        const { error: stockError } = await supabase
+          .from("materials")
+          .update({ stock: material.stock - item.quantity })
+          .eq("id", item.product_id)
+        
+        if (stockError) {
+          console.error("Stock deduction error for material:", item.product_id, stockError)
+          return NextResponse.json({ error: "Failed to update stock" }, { status: 500 })
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("orders")
       .insert({

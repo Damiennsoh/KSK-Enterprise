@@ -75,6 +75,7 @@ export default function ConstructionPage() {
       image: material.images[0] || "/placeholder.png",
       unit: material.unit,
       type: "material",
+      category: "construction",
     })
     setAddedId(material.id)
     setTimeout(() => setAddedId(null), 1500)
