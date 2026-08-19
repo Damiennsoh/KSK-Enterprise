@@ -19,10 +19,31 @@ export default function CheckoutPage() {
   const [selectedZone, setSelectedZone] = useState<number | null>(null)
   const [deliveryZones, setDeliveryZones] = useState<any[]>([])
   const [loadingZones, setLoadingZones] = useState(true)
+  const [userCountry, setUserCountry] = useState<string | null>(null)
+  const [isGhana, setIsGhana] = useState(true)
 
   useEffect(() => {
     loadDeliveryZones()
+    detectUserCountry()
   }, [])
+
+  const detectUserCountry = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/')
+      const data = await response.json()
+      setUserCountry(data.country_name)
+      setIsGhana(data.country_code === 'GH')
+      
+      // If not in Ghana, default to bank card
+      if (data.country_code !== 'GH') {
+        setPaymentMethod('bank_card')
+      }
+    } catch (error) {
+      console.error('Failed to detect country:', error)
+      // Default to Ghana if detection fails
+      setIsGhana(true)
+    }
+  }
 
   const loadDeliveryZones = async () => {
     try {
@@ -190,10 +211,22 @@ export default function CheckoutPage() {
 
               <div>
                 <h3 className="text-lg font-bold text-ksk-dark mb-4">Payment Method</h3>
+                
+                {/* International payment notice */}
+                {!isGhana && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-semibold">International customers:</span> Please use Visa or Mastercard. Mobile Money is available for Ghanaian networks only.
+                    </p>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button type="button" onClick={() => setPaymentMethod("momo")} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${paymentMethod === "momo" ? "border-ksk-gold bg-ksk-gold/5" : "border-gray-200 hover:border-gray-300"}`}>
-                    <Smartphone className="w-6 h-6 text-ksk-gold" /><span className="text-sm font-medium">Mobile Money</span><span className="text-xs text-gray-500">MTN MoMo / Telecel</span>
-                  </button>
+                  {isGhana && (
+                    <button type="button" onClick={() => setPaymentMethod("momo")} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${paymentMethod === "momo" ? "border-ksk-gold bg-ksk-gold/5" : "border-gray-200 hover:border-gray-300"}`}>
+                      <Smartphone className="w-6 h-6 text-ksk-gold" /><span className="text-sm font-medium">Mobile Money</span><span className="text-xs text-gray-500">MTN MoMo / Telecel</span>
+                    </button>
+                  )}
                   <button type="button" onClick={() => setPaymentMethod("bank_card")} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${paymentMethod === "bank_card" ? "border-ksk-gold bg-ksk-gold/5" : "border-gray-200 hover:border-gray-300"}`}>
                     <CreditCard className="w-6 h-6 text-ksk-gold" /><span className="text-sm font-medium">Bank Card</span><span className="text-xs text-gray-500">Visa / Mastercard</span>
                   </button>
