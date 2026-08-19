@@ -1,0 +1,117 @@
+Paystack Integration Reference Guide
+For: PsyCatech-Solutions (Ghana)
+Developer: Damien
+Status: LIVE
+Date: August 19, 2026
+1. Account & Security Overview
+Account Status
+Business Name: PsyCatech-Solutions
+Status: LIVE (Approved and active)
+Supported Payments: Mobile Money (MoMo), Bank Transfer, Card.
+Note: MTN USSD is currently unavailable (see Section 9).
+🔐 Critical Security Rules
+All server-to-server API calls must be authenticated.
+Header Format:
+http
+
+1
+Secret Key Safety:
+❌ NEVER expose sk_live_... keys in frontend JavaScript, HTML, or mobile app client-side code.
+✅ ONLY use secret keys on your backend server (Node.js, Python, PHP, etc.).
+✅ Use sk_test_... keys during development. Switch to sk_live_... only when deploying to production.
+2. Transaction Workflow (The "Happy Path")
+To ensure secure, error-free payments, follow this exact sequence:
+Initialize: Your server requests a transaction from Paystack.
+Checkout: Customer pays via Paystack Popup, Redirect, or SDK.
+Verify: Crucial Step. Your server calls the Verify API to confirm status.
+Deliver: Only after verification returns success, deliver the product/service.
+Why Verify? Frontend callbacks can be intercepted or fail if the user closes the browser. Server-side verification is the single source of truth.
+3. Payment APIs (Receiving Money)
+3.1 Initialize Transaction
+Starts a transaction. Returns an access_code (for SDKs) or authorization_url (for redirects).
+Endpoint: POST https://api.paystack.co/transaction/initialize
+Required Params:
+email: Customer's email address.
+amount: Amount in Pesewas (GHS * 100).
+Recommended Params:
+callback_url: Where to redirect user after payment.
+reference: Unique ID for your records (optional, auto-generated if missing).
+3.2 Verify Transaction
+Confirms if a payment was successful. Call this immediately after the customer returns to your site or via Webhook.
+Endpoint: GET https://api.paystack.co/transaction/verify/{reference}
+Success Response: Look for "status": "success".
+Key Data Returned:
+authorization_code: Save this! Allows you to charge the customer again without asking for card details (Recurring/One-click).
+channel: e.g., card, mobile_money, bank.
+3.3 Charge Authorization (Recurring/One-Click)
+Charge a returning customer using their saved authorization_code.
+Endpoint: POST https://api.paystack.co/transaction/charge_authorization
+Required Params:
+authorization_code: From previous successful transaction.
+email: Customer's email.
+amount: In Pesewas.
+4. Transfers API (Sending Money)
+Useful for payouts, refunds, or vendor payments from your Paystack balance.
+4.1 Create Transfer Recipient
+Register a bank account or MoMo wallet before sending money.
+Endpoint: POST https://api.paystack.co/transferrecipient
+Params:
+type: "nuban" (Bank) or "mobile_money" (MoMo).
+name: Beneficiary name.
+account_number: Bank/MoMo number.
+bank_code: Get from List Banks API.
+currency: "GHS".
+Returns: recipient_code (Save this for future transfers).
+4.2 Initiate Transfer
+Send money to a registered recipient.
+Endpoint: POST https://api.paystack.co/transfer
+Params:
+source: "balance".
+amount: In Pesewas.
+recipient: The recipient_code.
+reason: Description of payment.
+Status: Initially "pending". Final status comes via Webhook.
+4.3 Fetch Transfer
+Check status of a specific transfer.
+Endpoint: GET https://api.paystack.co/transfer/{transfer_code}
+5. Identity Management APIs
+Validate user details to reduce fraud.
+5.1 Card BIN Resolution
+Get card details from the first 6 digits.
+Use Case: Pre-validate card type (Visa/Mastercard) and issuing bank before charging.
+Endpoint: GET https://api.paystack.co/decision/bin/{bin}
+5.2 Account Number Resolution
+Validate bank account ownership.
+Use Case: Ensure the name matches the account number before creating a transfer recipient.
+Endpoint: GET https://api.paystack.co/bank/resolve?account_number={number}&bank_code={code}
+6. Webhooks (Reliability Layer)
+Webhooks ensure you never miss a payment notification, even if the user's internet drops during the callback.
+Setup: Configure a public URL in your Paystack Dashboard.
+Security: Verify the webhook signature (x-paystack-signature) to ensure the request is genuinely from Paystack.
+Key Events to Listen For:
+charge.success: Payment completed.
+transfer.success: Payout completed.
+Best Practice: Always return 200 OK to Paystack immediately upon receiving the webhook, then process the logic asynchronously.
+7. Important Technical Notes
+💰 Currency Conversion
+Paystack uses Pesewas (smallest unit).
+Formula: Amount in GHS × 100 = Amount in Pesewas
+Example: GHS 10.00 → Send 1000 to API.
+📱 Mobile Money (MoMo)
+Supports MTN, Vodafone, AirtelTigo.
+Customers enter their phone number and approve the prompt on their device.
+⚠️ Known Issue: MTN USSD
+Status: Unavailable.
+Impact: Custom USSD codes and Virtual Terminal USSD for MTN are down.
+Workaround: Use Paystack Checkout (Popup/Redirect) or Card/Bank channels. Other networks (Vodafone/AirtelTigo) USSD still work.
+8. Developer Checklist for Go-Live
+Secret Key: Stored in environment variables (.env), not hardcoded.
+Test Mode: Verified flow using sk_test_... keys.
+Live Mode: Switched to sk_live_... keys.
+Verification: Backend verifies every transaction before delivering value.
+Webhooks: Endpoint set up and signature verification implemented.
+Error Handling: User-friendly messages for failed payments.
+Authorization Codes: Database schema updated to store authorization_code for recurring users.
+Support
+Email: hello@paystack.com
+Docs: https://paystack.com/docs

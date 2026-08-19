@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const payload = await req.json()
+    const rawPayload = await req.text()
+    const payload = JSON.parse(rawPayload)
     const event = payload.event
     const data = payload.data
 
@@ -35,9 +36,20 @@ Deno.serve(async (req) => {
     )
 
     // Verify Paystack signature (recommended for production)
-    // const signature = req.headers.get("x-paystack-signature")
-    // const hash = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(JSON.stringify(payload) + Deno.env.get("PAYSTACK_SECRET_KEY")))
-    // Verify hash matches signature...
+    const signature = req.headers.get("x-paystack-signature")
+    if (signature) {
+      const hash = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(rawPayload + Deno.env.get("PAYSTACK_SECRET_KEY")))
+      const hashArray = Array.from(new Uint8Array(hash))
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      
+      if (hashHex !== signature) {
+        console.error("Invalid webhook signature")
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+    }
 
     if (event === "charge.success") {
       const reference = data.reference
