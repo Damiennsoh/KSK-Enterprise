@@ -9,11 +9,10 @@ export function BusinessCards() {
     {
       title: "Fashion & Smocks",
       description:
-        "Hand-woven traditional smocks and fugus made by skilled artisans in the Upper West Region. Perfect for weddings, ceremonies, and everyday wear.",
+        "Hand-woven traditional smocks/fugu made by skilled artisans in the Upper West Region. Perfect for weddings, ceremonies, and everyday wear.",
       icon: ShoppingBag,
       href: "/fashion",
-      image:
-        "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600",
+      image: "/smock.jpeg",
       color: "bg-amber-600",
     },
     {
@@ -22,8 +21,7 @@ export function BusinessCards() {
         "Reliable vehicles for weddings, personal trips, and corporate events. From sedans to SUVs and buses, we have the right car for your needs.",
       icon: Car,
       href: "/rentals",
-      image:
-        "https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?w=600",
+      image: "/car.jpg",
       color: "bg-ksk-brown",
     },
     {
