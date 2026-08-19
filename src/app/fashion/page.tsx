@@ -59,6 +59,7 @@ export default function FashionPage() {
       price: product.price,
       image: product.images[0] || "/placeholder.png",
       type: "product",
+      category: "fashion",
     })
     setAddedId(product.id)
     setTimeout(() => setAddedId(null), 1500)
