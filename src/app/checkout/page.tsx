@@ -178,8 +178,8 @@ export default function CheckoutPage() {
                     <input type="tel" required pattern="0[0-9]{9}" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold" placeholder="024XXXXXXX" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-ksk-dark mb-1">Email *</label>
-                    <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold" placeholder="your@email.com" />
+                    <label className="block text-sm font-medium text-ksk-dark mb-1">Email (Optional)</label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold" placeholder="your@email.com" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-ksk-dark mb-1">Delivery Address *</label>
