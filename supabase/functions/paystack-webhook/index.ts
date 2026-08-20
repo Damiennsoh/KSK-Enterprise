@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.0"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "x-client-info, apikey, content-type, x-paystack-signature",
 }
 
 Deno.serve(async (req) => {
@@ -28,28 +28,36 @@ Deno.serve(async (req) => {
     const event = payload.event
     const data = payload.data
 
+    // Verify Paystack signature (mandatory for security)
+    const signature = req.headers.get("x-paystack-signature")
+    const secretKey = Deno.env.get("PAYSTACK_SECRET_KEY")
+    
+    if (!signature || !secretKey) {
+      console.error("Missing signature or secret key")
+      return new Response(JSON.stringify({ error: "Missing signature or secret key" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const hash = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(rawPayload + secretKey))
+    const hashArray = Array.from(new Uint8Array(hash))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    
+    if (hashHex !== signature) {
+      console.error("Invalid webhook signature")
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
     // Initialize Supabase admin client
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SERVICE_ROLE_KEY")!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
-
-    // Verify Paystack signature (recommended for production)
-    const signature = req.headers.get("x-paystack-signature")
-    if (signature) {
-      const hash = await crypto.subtle.digest("SHA-512", new TextEncoder().encode(rawPayload + Deno.env.get("PAYSTACK_SECRET_KEY")))
-      const hashArray = Array.from(new Uint8Array(hash))
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-      
-      if (hashHex !== signature) {
-        console.error("Invalid webhook signature")
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        })
-      }
-    }
 
     if (event === "charge.success") {
       const reference = data.reference
