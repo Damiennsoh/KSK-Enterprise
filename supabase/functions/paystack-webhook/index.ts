@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
         .update({
           status: "confirmed",
           paystack_reference: reference,
+          paid_at: new Date().toISOString(),
         })
         .eq("paystack_reference", reference)
 
