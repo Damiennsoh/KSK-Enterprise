@@ -61,19 +61,26 @@ export default function CheckoutPage() {
   }
 
   const calculateDeliveryCost = () => {
+    // Check if any items require delivery fees
+    const itemsWithDelivery = items.filter(item => item.includeDeliveryInSummary !== false)
+    
+    // If no items require delivery fees, return 0
+    if (itemsWithDelivery.length === 0) return 0
+    
+    // Otherwise calculate based on selected zone
     if (!selectedZone) return 0
     const zone = deliveryZones.find(z => z.id === selectedZone)
     if (!zone) return 0
 
     let totalDeliveryCost = 0
-    items.forEach(item => {
-      if (item.includeDeliveryInSummary !== false) {
-        const cost = item.deliveryCostOverride || zone.base_delivery_cost
-        totalDeliveryCost += cost * item.quantity
-      }
+    itemsWithDelivery.forEach(item => {
+      const cost = item.deliveryCostOverride || zone.base_delivery_cost
+      totalDeliveryCost += cost * item.quantity
     })
     return totalDeliveryCost
   }
+
+  const hasDeliveryFees = items.some(item => item.includeDeliveryInSummary !== false)
 
   const deliveryFee = calculateDeliveryCost()
   const total = totalPrice + deliveryFee
@@ -202,29 +209,37 @@ export default function CheckoutPage() {
               <div>
                 <h3 className="text-lg font-bold text-ksk-dark mb-4">Delivery Information</h3>
                 
-                {/* Delivery Zone Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-ksk-dark mb-2 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Select Delivery Location
-                  </label>
-                  {loadingZones ? (
-                    <div className="text-sm text-gray-500">Loading delivery zones...</div>
-                  ) : (
-                    <select 
-                      value={selectedZone || ""} 
-                      onChange={(e) => setSelectedZone(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold"
-                      required
-                    >
-                      {deliveryZones.map(zone => (
-                        <option key={zone.id} value={zone.id}>
-                          {zone.zone_name} - GH₵{zone.base_delivery_cost.toFixed(2)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
+                {/* Delivery Zone Selection - Only show if items have delivery fees */}
+                {hasDeliveryFees ? (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-ksk-dark mb-2 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Select Delivery Location
+                    </label>
+                    {loadingZones ? (
+                      <div className="text-sm text-gray-500">Loading delivery zones...</div>
+                    ) : (
+                      <select 
+                        value={selectedZone || ""} 
+                        onChange={(e) => setSelectedZone(Number(e.target.value))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ksk-gold"
+                        required
+                      >
+                        {deliveryZones.map(zone => (
+                          <option key={zone.id} value={zone.id}>
+                            {zone.zone_name} - GH₵{zone.base_delivery_cost.toFixed(2)}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm text-green-800">
+                      <span className="font-semibold">Free delivery:</span> Your order includes free delivery. Please provide your delivery address below.
+                    </p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
