@@ -107,7 +107,7 @@ export default function CheckoutPage() {
     if (paymentMethod === "cash") {
       try {
         const orderData = {
-          items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
+          items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color, category: i.category })),
           total, customer_name: formData.customerName, phone: formData.phone, email: formData.email, address: formData.address, payment_method: paymentMethod,
         }
         const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
@@ -117,43 +117,70 @@ export default function CheckoutPage() {
       return
     }
 
-    if (typeof window !== "undefined" && (window as any).PaystackPop) {
-      const handler = (window as any).PaystackPop.setup({
-        key: PAYSTACK_KEY, email: formData.email || `${formData.phone}@kskenterprise.com`, amount: total * 100, currency: "GHS", ref: "KSK-" + Date.now(),
-        metadata: { custom_fields: [
-          { display_name: "Customer Name", variable_name: "customer_name", value: formData.customerName },
-          { display_name: "Phone", variable_name: "phone", value: formData.phone },
-          { display_name: "Address", variable_name: "address", value: formData.address },
-        ]},
-        callback: function (response: any) {
-          (async () => {
-            try {
-              const orderData = {
-                items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color })),
-                total, customer_name: formData.customerName, phone: formData.phone, email: formData.email, address: formData.address, payment_method: paymentMethod, paystack_reference: response.reference,
+    // For online payments, create order first with pending status
+    try {
+      const orderData = {
+        items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity, size: i.size, color: i.color, category: i.category })),
+        total, customer_name: formData.customerName, phone: formData.phone, email: formData.email, address: formData.address, payment_method: paymentMethod,
+      }
+      
+      // Create pending order and get reference
+      const res = await fetch("/api/orders/create-pending", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        setPaymentError(errorData.error || "Failed to create order. Please try again.")
+        setLoading(false)
+        return
+      }
+      
+      const { order, paystack_reference } = await res.json()
+      
+      // Open Paystack with the reference from the created order
+      if (typeof window !== "undefined" && (window as any).PaystackPop) {
+        const handler = (window as any).PaystackPop.setup({
+          key: PAYSTACK_KEY, email: formData.email || `${formData.phone}@kskenterprise.com`, amount: total * 100, currency: "GHS", ref: paystack_reference,
+          metadata: { custom_fields: [
+            { display_name: "Customer Name", variable_name: "customer_name", value: formData.customerName },
+            { display_name: "Phone", variable_name: "phone", value: formData.phone },
+            { display_name: "Address", variable_name: "address", value: formData.address },
+          ]},
+          callback: function (response: any) {
+            (async () => {
+              try {
+                // Verify payment and update order status
+                const verifyRes = await fetch(`/api/orders/${order.id}/verify-payment`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ reference: response.reference })
+                })
+                
+                if (verifyRes.ok) { 
+                  clearCart(); 
+                  setOrderComplete(true) 
+                } else {
+                  const errorData = await verifyRes.json()
+                  setPaymentError(errorData.error || "Payment verification failed. Please try again.")
+                }
+              } catch (err) { 
+                console.error(err)
+                setPaymentError("An error occurred while processing your order. Please try again.")
               }
-              const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
-              if (res.ok) { 
-                clearCart(); 
-                setOrderComplete(true) 
-              } else {
-                const errorData = await res.json()
-                setPaymentError(errorData.error || "Payment verification failed. Please try again.")
-              }
-            } catch (err) { 
-              console.error(err)
-              setPaymentError("An error occurred while processing your order. Please try again.")
-            }
+              setLoading(false)
+            })()
+          },
+          onClose: function () {
             setLoading(false)
-          })()
-        },
-        onClose: function () {
-          setLoading(false)
-          setPaymentError("Payment was cancelled or failed. Please try again.")
-        },
-      })
-      handler.openIframe()
-    } else { alert("Paystack is loading. Please try again."); setLoading(false) }
+            setPaymentError("Payment was cancelled or failed. Please try again.")
+          },
+        })
+        handler.openIframe()
+      } else { alert("Paystack is loading. Please try again."); setLoading(false) }
+    } catch (err) {
+      console.error(err)
+      setPaymentError("An error occurred while processing your order. Please try again.")
+      setLoading(false)
+    }
   }
 
   if (orderComplete) {
