@@ -55,6 +55,9 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Log successful webhook for debugging (without sensitive data)
+    console.log(`Webhook received: ${event} for reference: ${data.reference || 'unknown'}`);
+
     // Initialize Supabase admin client
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
