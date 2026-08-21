@@ -142,16 +142,31 @@ All tables have RLS enabled with the following policies:
 
 ### Webhook Setup
 
-1. Deploy the Edge Function:
+1. Install Supabase CLI (if not already installed):
    ```bash
-   supabase login
-   supabase link --project-ref your-project-ref
-   supabase functions deploy paystack-webhook
+   npm install -g supabase
+   # or
+   pnpm add -g supabase
    ```
 
-2. In Paystack Dashboard > Settings > Webhooks:
+2. Deploy the Edge Function with --no-verify-jwt flag (required for webhooks):
+   ```bash
+   supabase functions deploy paystack-webhook --project-ref your-project-ref --no-verify-jwt
+   ```
+
+3. Set environment variables in Supabase Dashboard > Edge Functions > Secrets:
+   - `PAYSTACK_SECRET_KEY` = Your Paystack secret key
+   - `SERVICE_ROLE_KEY` = Your Supabase service role key
+   - `SUPABASE_URL` = Your project URL
+
+4. In Paystack Dashboard > Settings > Webhooks:
    - URL: `https://your-project.supabase.co/functions/v1/paystack-webhook`
    - Secret: Your Paystack secret key
+
+5. Apply the paid_at column migration in SQL Editor:
+   ```sql
+   ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+   ```
 
 ---
 
@@ -241,6 +256,8 @@ ksk-enterprise/
 - Browse products, vehicles, and materials
 - Add items to cart
 - Checkout with Paystack (Mobile Money / Bank Card) or Cash
+- Conditional delivery fields based on product configuration (free delivery items show manual address input)
+- Automatic order confirmation via Paystack webhooks
 - Book car rentals
 - Submit construction inquiries
 - View order confirmation
@@ -248,9 +265,11 @@ ksk-enterprise/
 ### Admin Features
 - Dashboard with statistics
 - CRUD for products, vehicles, and materials
+- Configure delivery fees per product/material (include_delivery_in_summary flag)
 - Image upload to Supabase Storage
 - Manage orders, bookings, and inquiries
 - Update status of orders/bookings/inquiries
+- Automatic stock deduction when orders are confirmed
 
 ---
 
@@ -271,6 +290,13 @@ npm install
 - Check that `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` is set
 - Verify you're using the correct key (Test vs Live)
 - Check browser console for errors
+
+### Orders stuck in "pending" status
+- Verify the webhook is deployed with --no-verify-jwt flag
+- Check that environment variables are set in Supabase Dashboard > Edge Functions > Secrets
+- Ensure the paid_at column exists in the orders table
+- Check Supabase Edge Functions logs for webhook errors
+- Verify Paystack reference is being saved before payment (new implementation)
 
 ### Images not uploading
 - Verify storage buckets exist in Supabase
