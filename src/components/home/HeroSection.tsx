@@ -15,9 +15,9 @@ type HeroSlide = {
 }
 
 const fallbackSlides: HeroSlide[] = [
-  { eyebrow: "Built for what's next", title: "Build boldly. Move confidently.", description: "From dependable construction support to practical mobility, KSK Enterprise brings trusted services together for the way Ghana is growing.", cta_label: "Explore construction", cta_href: "/construction", image_url: "/images/hero/construction.png" },
-  { eyebrow: "Made in the North", title: "Tradition, woven forward.", description: "Discover hand-finished smocks and fugu made with pride, patience, and a distinctly Ghanaian sense of occasion.", cta_label: "Shop smocks", cta_href: "/fashion", image_url: "/images/hero/smock.png" },
-  { eyebrow: "Ready when you are", title: "The right car for every road.", description: "Comfortable, dependable vehicles and responsive service for business, family, and every journey in between.", cta_label: "View rentals", cta_href: "/rentals", image_url: "/images/hero/rental.png" },
+  { eyebrow: "KSK Fashion · Made in the North", title: "Traditional smocks, made to be remembered.", description: "Discover hand-finished smocks and fugu from Wa, crafted with pride for weddings, celebrations, and everyday Ghanaian style.", cta_label: "Shop smocks & fugu", cta_href: "/fashion", image_url: "/images/hero/smock.png" },
+  { eyebrow: "Still part of KSK", title: "Build boldly. Move confidently.", description: "Our trusted construction support and practical mobility services are still here whenever you need them.", cta_label: "Explore our other services", cta_href: "/construction", image_url: "/images/hero/construction.png" },
+  { eyebrow: "Still part of KSK", title: "The right car for every road.", description: "Comfortable, dependable vehicles for business, family, and every journey in between.", cta_label: "View car rentals", cta_href: "/rentals", image_url: "/images/hero/rental.png" },
 ]
 
 export function HeroSection({ slides = fallbackSlides }: { slides?: HeroSlide[] }) {
