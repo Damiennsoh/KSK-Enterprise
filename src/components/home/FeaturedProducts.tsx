@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react"
 
 /**
  * Featured products section on homepage.
- * Displays sample smocks, vehicles, and materials.
+ * Displays a focused selection of KSK fashion products.
  */
 export function FeaturedProducts() {
   const featured = [
@@ -16,27 +16,27 @@ export function FeaturedProducts() {
       href: "/fashion",
     },
     {
-      name: "Toyota Camry",
-      price: 450,
-      image:
-        "https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?w=400",
-      category: "Car Rental / day",
-      href: "/rentals",
-    },
-    {
-      name: "Dangote Cement",
-      price: 85,
-      image:
-        "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400",
-      category: "Construction",
-      href: "/construction",
-    },
-    {
       name: "Premium Wedding Fugu",
       price: 550,
       image:
         "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400",
-      category: "Fashion",
+      category: "Wedding Collection",
+      href: "/fashion",
+    },
+    {
+      name: "Handwoven Festival Smock",
+      price: 420,
+      image:
+        "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400",
+      category: "Festival Collection",
+      href: "/fashion",
+    },
+    {
+      name: "Classic White Fugu",
+      price: 380,
+      image:
+        "https://images.unsplash.com/photo-1598808503746-f34c53b9323e?w=400",
+      category: "Everyday Heritage",
       href: "/fashion",
     },
   ]
@@ -44,12 +44,13 @@ export function FeaturedProducts() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-ksk-cream">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-end justify-between mb-10">
           <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-ksk-gold mb-2">KSK Fashion</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-ksk-dark mb-2">
-              Featured Items
+              Wear your story.
             </h2>
-            <p className="text-gray-600">Popular products from our catalog</p>
+            <p className="text-gray-600">Hand-finished smocks and fugu for every meaningful occasion.</p>
           </div>
           <Link
             href="/fashion"

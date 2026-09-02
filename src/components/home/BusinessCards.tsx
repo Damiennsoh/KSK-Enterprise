@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ShoppingBag, Car, HardHat, ArrowRight } from "lucide-react"
 
 /**
- * Three business line cards displayed on the homepage.
+ * Fashion leads the homepage, with KSK's other services kept easy to find.
  */
 export function BusinessCards() {
   const businesses = [
@@ -43,11 +43,10 @@ export function BusinessCards() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-ksk-dark mb-4">
-            Our Business Lines
+            More from KSK Enterprise
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Three pillars of quality service, serving Wa and the Upper West Region
-            with pride and dedication.
+            Fashion is our featured craft. Construction and car rentals remain available whenever you need them.
           </p>
         </div>
 
